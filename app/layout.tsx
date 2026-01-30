@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { QueryProvider } from "@/modules/shared/query/query-provider";
 import { Toaster } from "@/components/ui/toast/toaster";
+import { QueryProvider } from "./modules/shared/query/query-provider";
+import { AuthProvider } from "./providers/auth-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,25 +16,29 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Inscrição – Feira Gastronômica",
-  description:
-    "Preencha o formulário para participar da próxima feira gastronômica. Cadastre seu negócio, informe seus produtos e manifeste seu interesse em fazer parte do evento.",
+  title: "Feira Gastronômica",
+  description: "Portal do expositor — acesso autenticado.",
 };
 
-
+/**
+ * RootLayout (App Router)
+ * Responsabilidade:
+ * - Definir HTML base, fontes, providers globais e toaster
+ *
+ * Importante:
+ * - Este arquivo é Server Component por padrão.
+ * - Não deve conter hooks (useEffect/useRouter).
+ */
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <QueryProvider>{children}</QueryProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <QueryProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </QueryProvider>
         <Toaster />
-
       </body>
     </html>
   );
