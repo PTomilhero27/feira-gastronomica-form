@@ -9,8 +9,12 @@ import { exhibitorFairsService } from './exhibitor-fairs.service'
  * - Invalidation consistente
  *
  * Observação:
- * - A tela de feiras depende de dados de barracas e vínculos.
- * - Por isso, após link/unlink, invalidamos também o cache de barracas.
+ * - A tela de feiras depende de:
+ *   - compras (purchases)
+ *   - vínculos (linkedStalls)
+ *   - contrato (contract)
+ * - Após link/unlink, invalidamos também o cache de barracas,
+ *   pois outras telas podem refletir o status de vínculo.
  */
 export const exhibitorFairsKeys = {
   all: ['exhibitor-fairs'] as const,
@@ -25,18 +29,24 @@ export function useMyFairsQuery() {
   })
 }
 
+/**
+ * Vincula uma barraca a uma feira consumindo (opcionalmente) uma compra específica.
+ *
+ * Se purchaseId não for enviado, o backend escolhe automaticamente a primeira
+ * compra disponível compatível com o tamanho da barraca.
+ */
 export function useLinkStallToFairMutation() {
   const qc = useQueryClient()
 
   return useMutation({
     mutationKey: ['exhibitor-fairs', 'link-stall'],
-    mutationFn: (vars: { fairId: string; stallId: string }) =>
-      exhibitorFairsService.linkStall(vars.fairId, vars.stallId),
+    mutationFn: (vars: { fairId: string; stallId: string; purchaseId?: string | null }) =>
+      exhibitorFairsService.linkStall(vars.fairId, vars.stallId, vars.purchaseId ?? undefined),
     onSuccess: async () => {
-      // ✅ Atualiza a lista de feiras (inclui payment/vínculos)
+      // ✅ Atualiza lista de feiras (inclui contrato, compras, vínculos e resumo de pagamento)
       await qc.invalidateQueries({ queryKey: exhibitorFairsKeys.all })
 
-      // ✅ E também barracas (caso a UI reflita o vínculo em outra tela)
+      // ✅ Atualiza barracas (caso existam badges/estado de vínculo em outra tela)
       await qc.invalidateQueries({ queryKey: ['stalls'] })
     },
   })
