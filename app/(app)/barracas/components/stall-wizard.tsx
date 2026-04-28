@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useMemo, useState } from 'react'
@@ -5,7 +6,10 @@ import { toast } from '@/components/ui/toast'
 
 import { StepProgress } from './step-progress'
 
-import { useStallsCreateMutation, useStallsUpdateMutation } from '@/app/modules/stalls/stalls.queries'
+import {
+  useStallsCreateMutation,
+  useStallsUpdateMutation,
+} from '@/app/modules/stalls/stalls.queries'
 import { Stall, UpsertStallRequest } from '@/app/modules/stalls/stalls.schema'
 import { getErrorMessage } from '@/app/modules/shared/utils/get-error-message'
 
@@ -13,6 +17,18 @@ import { StallStep1Basic } from './step/stall-step-basic'
 import { StallStep2Menu } from './step/stall-step-menu'
 import { StallStep3Infra } from './step/stall-step-infra'
 
+/**
+ * Wizard de criação/edição de Barraca no Portal do Expositor.
+ *
+ * Responsabilidade:
+ * - Guiar o expositor pelos passos de cadastro (básico, cardápio, infra).
+ * - Montar payload compatível com o backend (UpsertStallDto).
+ *
+ * Decisão importante (Carrinho):
+ * - Quando stallType = CART, forçamos stallSize = CART no payload.
+ * - Quando stallType = TRAILER, forçamos stallSize = TRAILER no payload.
+ * - Para OPEN/CLOSED, exigimos tamanho (2x2/3x3/3x6).
+ */
 export function StallWizard({
   mode,
   initialStall,
@@ -42,21 +58,46 @@ export function StallWizard({
 
   /** ---------------------------
    * Estado local (UI-friendly)
-   * -------------------------- */
-  const [basic, setBasic] = useState(() => ({
-    pdvName: initialStall?.pdvName ?? '',
-    machinesQty: initialStall?.machinesQty ?? 0,
-    bannerName: initialStall?.bannerName ?? '',
-    mainCategory: initialStall?.mainCategory ?? '',
-    mainCategoryOther: '', // ✅ garante string sempre (evita uncontrolled->controlled)
+   * --------------------------
+   * Importante:
+   * - Aqui o tipo precisa aceitar 'CART' para casar com o Step1.
+   * - Mesmo que a gente "zere" o tamanho quando tipo=CART, o Step1 tem opção visual de CART.
+   */
+  const [basic, setBasic] = useState(() => {
+    const stallType = (initialStall?.stallType ?? '') as
+      | 'OPEN'
+      | 'CLOSED'
+      | 'TRAILER'
+      | 'CART'
+      | ''
 
-    stallType: (initialStall?.stallType ?? '') as 'OPEN' | 'CLOSED' | 'TRAILER' | '',
-    // ✅ no UI, stallSize é somente os tamanhos ou '' (trailer limpa)
-    stallSize: (initialStall?.stallSize && initialStall.stallSize !== 'TRAILER'
-      ? initialStall.stallSize
-      : '') as 'SIZE_2X2' | 'SIZE_3X3' | 'SIZE_3X6' | '',
-    teamQty: initialStall?.teamQty ?? 1,
-  }))
+    /**
+     * UI:
+     * - OPEN/CLOSED => permite SIZE_2X2 | SIZE_3X3 | SIZE_3X6
+     * - TRAILER/CART => normalmente fica '' (payload resolve)
+     *
+     * Mesmo assim, tipamos incluindo 'CART' para evitar incompatibilidade
+     * quando o Step1 emitir esse valor.
+     */
+    const stallSize =
+      initialStall?.stallSize &&
+      initialStall.stallSize !== 'TRAILER' &&
+      initialStall.stallSize !== 'CART'
+        ? (initialStall.stallSize as 'SIZE_2X2' | 'SIZE_3X3' | 'SIZE_3X6' | 'CART')
+        : ('' as string)
+
+    return {
+      pdvName: initialStall?.pdvName ?? '',
+      machinesQty: initialStall?.machinesQty ?? 0,
+      bannerName: initialStall?.bannerName ?? '',
+      mainCategory: initialStall?.mainCategory ?? '',
+      mainCategoryOther: '',
+
+      stallType,
+      stallSize: stallSize as 'SIZE_2X2' | 'SIZE_3X3' | 'SIZE_3X6' | 'CART' | '',
+      teamQty: initialStall?.teamQty ?? 1,
+    }
+  })
 
   const [menu, setMenu] = useState<
     Array<{ name: string; products: Array<{ name: string; price: string }> }>
@@ -118,16 +159,23 @@ export function StallWizard({
     }
 
     if (basic.mainCategory === 'OTHER' && !basic.mainCategoryOther.trim()) {
-      toast.warning({ title: 'Informe a categoria', subtitle: 'Ao selecionar "Outro", você precisa digitar a categoria.' })
+      toast.warning({
+        title: 'Informe a categoria',
+        subtitle: 'Ao selecionar "Outro", você precisa digitar a categoria.',
+      })
       return false
     }
 
     if (!basic.stallType) {
-      toast.warning({ title: 'Informe o tipo da barraca', subtitle: 'Selecione: Aberta, Fechada ou Trailer.' })
+      toast.warning({
+        title: 'Informe o tipo da barraca',
+        subtitle: 'Selecione: Aberta, Fechada, Trailer ou Carrinho.',
+      })
       return false
     }
 
-    if (basic.stallType !== 'TRAILER' && !basic.stallSize) {
+    // ✅ Para OPEN/CLOSED, exige tamanho
+    if (basic.stallType !== 'TRAILER' && basic.stallType !== 'CART' && !basic.stallSize) {
       toast.warning({ title: 'Informe o tamanho', subtitle: 'Selecione o tamanho da barraca.' })
       return false
     }
@@ -142,22 +190,34 @@ export function StallWizard({
 
   function validateStep1(): boolean {
     if (!menu.length) {
-      toast.warning({ title: 'Adicione uma categoria', subtitle: 'Você precisa ter pelo menos 1 categoria no cardápio.' })
+      toast.warning({
+        title: 'Adicione uma categoria',
+        subtitle: 'Você precisa ter pelo menos 1 categoria no cardápio.',
+      })
       return false
     }
 
     for (const c of menu) {
       if (!c.name?.trim()) {
-        toast.warning({ title: 'Categoria sem nome', subtitle: 'Preencha o nome de todas as categorias.' })
+        toast.warning({
+          title: 'Categoria sem nome',
+          subtitle: 'Preencha o nome de todas as categorias.',
+        })
         return false
       }
       if (!c.products?.length) {
-        toast.warning({ title: 'Categoria sem produto', subtitle: `A categoria "${c.name}" precisa ter pelo menos 1 produto.` })
+        toast.warning({
+          title: 'Categoria sem produto',
+          subtitle: `A categoria "${c.name}" precisa ter pelo menos 1 produto.`,
+        })
         return false
       }
       for (const p of c.products) {
         if (!p.name?.trim()) {
-          toast.warning({ title: 'Produto sem nome', subtitle: `Preencha o nome dos produtos da categoria "${c.name}".` })
+          toast.warning({
+            title: 'Produto sem nome',
+            subtitle: `Preencha o nome dos produtos da categoria "${c.name}".`,
+          })
           return false
         }
       }
@@ -168,12 +228,19 @@ export function StallWizard({
 
   function validateStep2(): boolean {
     const totalOutlets =
-      Number(infra.outlets110 || 0) + Number(infra.outlets220 || 0) + Number(infra.outletsOther || 0)
+      Number(infra.outlets110 || 0) +
+      Number(infra.outlets220 || 0) +
+      Number(infra.outletsOther || 0)
 
-    const validEquipmentsCount = (infra.equipments ?? []).filter((e) => (e.name ?? '').trim().length > 0).length
+    const validEquipmentsCount = (infra.equipments ?? []).filter(
+      (e) => (e.name ?? '').trim().length > 0,
+    ).length
 
     const hasAnything =
-      totalOutlets > 0 || validEquipmentsCount > 0 || Boolean(infra.needsGas) || Boolean(infra.notes?.trim())
+      totalOutlets > 0 ||
+      validEquipmentsCount > 0 ||
+      Boolean(infra.needsGas) ||
+      Boolean(infra.notes?.trim())
 
     if (!hasAnything) {
       toast.warning({
@@ -193,12 +260,18 @@ export function StallWizard({
 
     for (const e of infra.equipments ?? []) {
       if (!e.name?.trim()) {
-        toast.warning({ title: 'Equipamento sem nome', subtitle: 'Preencha o nome dos equipamentos ou remova o item.' })
+        toast.warning({
+          title: 'Equipamento sem nome',
+          subtitle: 'Preencha o nome dos equipamentos ou remova o item.',
+        })
         return false
       }
       const q = Number(e.qty)
       if (!Number.isFinite(q) || q < 1 || q > 99) {
-        toast.warning({ title: 'Quantidade inválida', subtitle: 'A quantidade do equipamento deve ser entre 1 e 99.' })
+        toast.warning({
+          title: 'Quantidade inválida',
+          subtitle: 'A quantidade do equipamento deve ser entre 1 e 99.',
+        })
         return false
       }
     }
@@ -243,7 +316,18 @@ export function StallWizard({
     const resolvedMainCategory =
       basic.mainCategory === 'OTHER' ? basic.mainCategoryOther.trim() : basic.mainCategory.trim()
 
-    const resolvedStallSize = basic.stallType === 'TRAILER' ? 'TRAILER' : (basic.stallSize || 'SIZE_3X3')
+    /**
+     * ✅ Resolução do tamanho conforme o tipo:
+     * - TRAILER => stallSize = TRAILER
+     * - CART    => stallSize = CART
+     * - OPEN/CLOSED => usa o tamanho escolhido (fallback 3x3)
+     */
+    const resolvedStallSize =
+      basic.stallType === 'TRAILER'
+        ? 'TRAILER'
+        : basic.stallType === 'CART'
+          ? 'CART'
+          : (basic.stallSize || 'SIZE_3X3')
 
     const power = {
       outlets110: Number(infra.outlets110 || 0),

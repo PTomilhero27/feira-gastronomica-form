@@ -19,7 +19,7 @@ import {
  */
 
 export async function lookupInterest(input: { document: string }): Promise<OwnerLookupResponse> {
-  const json = await api.post("/public/interests/lookup", input)
+  const json: any = await api.post("/public/interests/lookup", input)
   return ownerLookupResponseSchema.parse(json)
 }
 

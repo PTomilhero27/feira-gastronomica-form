@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 /**
  * Schemas do módulo autenticado de Barracas (Portal do Expositor).
@@ -13,30 +13,48 @@ import { z } from 'zod'
  * - PATCH  /stalls/:stallId
  * - DELETE /stalls/:stallId
  * - (recomendado) GET /stalls/:stallId
+ *
+ * Observação importante (domínio):
+ * - Agora suportamos "Carrinho" (CART) como:
+ *   - StallType.CART
+ *   - StallSize.CART
+ * - No Portal, quando o tipo é CART, o tamanho é fixo como CART (não escolhe 2x2/3x3/3x6).
  */
 
-export const stallSizeSchema = z.enum(['SIZE_2X2', 'SIZE_3X3', 'SIZE_3X6', 'TRAILER'])
-export const stallTypeSchema = z.enum(['OPEN', 'CLOSED', 'TRAILER'])
+export const stallSizeSchema = z.enum([
+  "SIZE_2X2",
+  "SIZE_3X3",
+  "SIZE_3X6",
+  "TRAILER",
+  "CART", // ✅ novo
+]);
+
+export const stallTypeSchema = z.enum([
+  "OPEN",
+  "CLOSED",
+  "TRAILER",
+  "CART", // ✅ novo
+]);
 
 export const stallMenuProductSchema = z.object({
   id: z.string(),
   name: z.string(),
   priceCents: z.number().int().min(0),
   order: z.number().int().min(0),
-})
+});
 
 export const stallMenuCategorySchema = z.object({
   id: z.string(),
   name: z.string(),
   order: z.number().int().min(0),
   products: z.array(stallMenuProductSchema),
-})
+});
 
 export const stallEquipmentSchema = z.object({
   id: z.string(),
   name: z.string(),
   qty: z.number().int().min(1),
-})
+});
 
 export const stallPowerNeedSchema = z.object({
   outlets110: z.number().int().min(0),
@@ -45,7 +63,7 @@ export const stallPowerNeedSchema = z.object({
   needsGas: z.boolean(),
   gasNotes: z.string().nullable(),
   notes: z.string().nullable(),
-})
+});
 
 /**
  * Stall completo (como vem na listagem do backend atual).
@@ -83,21 +101,21 @@ export const stallSchema = z.object({
 
   createdAt: z.string(),
   updatedAt: z.string(),
-})
-export type Stall = z.infer<typeof stallSchema>
+});
+export type Stall = z.infer<typeof stallSchema>;
 
 export const paginatedMetaSchema = z.object({
   page: z.number().int().min(1),
   pageSize: z.number().int().min(1),
   totalItems: z.number().int().min(0),
   totalPages: z.number().int().min(1),
-})
+});
 
 export const listStallsResponseSchema = z.object({
   items: z.array(stallSchema),
   meta: paginatedMetaSchema,
-})
-export type ListStallsResponse = z.infer<typeof listStallsResponseSchema>
+});
+export type ListStallsResponse = z.infer<typeof listStallsResponseSchema>;
 
 /**
  * Payload do Upsert (contrato do backend UpsertStallDto)
@@ -109,18 +127,18 @@ export const upsertMenuProductSchema = z.object({
   name: z.string().min(1),
   priceCents: z.number().int().min(0),
   order: z.number().int().min(0),
-})
+});
 
 export const upsertMenuCategorySchema = z.object({
   name: z.string().min(1),
   order: z.number().int().min(0),
   products: z.array(upsertMenuProductSchema).min(1),
-})
+});
 
 export const upsertEquipmentSchema = z.object({
   name: z.string().min(1),
   qty: z.number().int().min(1),
-})
+});
 
 export const upsertPowerSchema = z.object({
   outlets110: z.number().int().min(0),
@@ -129,7 +147,7 @@ export const upsertPowerSchema = z.object({
   needsGas: z.boolean(),
   gasNotes: z.string().optional(),
   notes: z.string().optional(),
-})
+});
 
 export const upsertStallSchema = z.object({
   pdvName: z.string().min(1),
@@ -145,14 +163,14 @@ export const upsertStallSchema = z.object({
   categories: z.array(upsertMenuCategorySchema),
   equipments: z.array(upsertEquipmentSchema),
   power: upsertPowerSchema.optional(),
-})
+});
 
-export type UpsertStallRequest = z.infer<typeof upsertStallSchema>
+export type UpsertStallRequest = z.infer<typeof upsertStallSchema>;
 
 export const upsertStallResponseSchema = z.object({
   stallId: z.string(),
-})
-export type UpsertStallResponse = z.infer<typeof upsertStallResponseSchema>
+});
+export type UpsertStallResponse = z.infer<typeof upsertStallResponseSchema>;
 
-export const deleteStallResponseSchema = z.object({ ok: z.boolean() })
-export type DeleteStallResponse = z.infer<typeof deleteStallResponseSchema>
+export const deleteStallResponseSchema = z.object({ ok: z.boolean() });
+export type DeleteStallResponse = z.infer<typeof deleteStallResponseSchema>;

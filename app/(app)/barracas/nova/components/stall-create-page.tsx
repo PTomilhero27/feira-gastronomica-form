@@ -1,10 +1,6 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-
-import { toast } from '@/components/ui/toast'
-import { tokenStore } from '@/app/modules/shared/auth/token'
 import { StallWizard } from '../../components/stall-wizard'
 
 

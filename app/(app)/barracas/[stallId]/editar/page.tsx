@@ -97,10 +97,11 @@ export default function EditStallPage() {
 
   return (
     <div className="space-y-4">
-      <section className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
-        <div className="bg-orange-50 px-6 py-5">
-          <h1 className="text-lg font-bold text-zinc-900">Editar barraca</h1>
-          <p className="mt-1 text-sm text-zinc-700">
+      <section className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="bg-slate-50/80 px-6 py-5 border-b border-slate-100 relative">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#010077] to-[#254cc9]" />
+          <h1 className="text-lg font-bold text-[#010077]">Editar barraca</h1>
+          <p className="mt-1 text-sm font-medium text-slate-500">
             Atualize os dados e salve as alterações.
           </p>
         </div>

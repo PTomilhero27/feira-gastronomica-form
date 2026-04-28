@@ -370,16 +370,15 @@ export function StallStep2Menu({
 
   /* ------------------ Render ------------------ */
   return (
-    <section className="rounded-3xl border border-zinc-200 bg-white shadow-sm">
+    <section className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
       {/* Header (igual Step 1) */}
-      <div className="rounded-t-3xl bg-orange-50 px-6 py-5">
-        <h3 className="text-lg font-bold text-zinc-900">Cardápio</h3>
-        <p className="mt-1 text-sm text-zinc-600">
+      <div className="bg-slate-50/80 px-5 py-5 sm:px-6 border-b border-slate-100 relative">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#010077] to-[#254cc9]" />
+        <h3 className="text-lg font-bold text-[#010077]">Cardápio</h3>
+        <p className="mt-1 text-sm text-slate-500 font-medium">
           Cadastre categorias e produtos. Nome do produto: <b>máx. 40 caracteres</b>.
         </p>
       </div>
-
-      <div className="h-px bg-zinc-200" />
 
       <div className="px-6 py-6">
         <div className="flex items-center justify-between gap-3">
@@ -390,7 +389,7 @@ export function StallStep2Menu({
           <button
             type="button"
             onClick={openAddCategory}
-            className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#010077] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#010077]/90 transition-colors"
           >
             <Plus className="h-4 w-4" />
             Adicionar categoria
@@ -413,8 +412,8 @@ export function StallStep2Menu({
                 key={catIdx}
                 data-cat-index={catIdx}
                 className={[
-                  'rounded-2xl border bg-white transition',
-                  isOverCat ? 'border-orange-400 ring-2 ring-orange-100' : 'border-zinc-200',
+                  'rounded-2xl border bg-white transition-all',
+                  isOverCat ? 'border-[#010077]/50 ring-2 ring-[#010077]/10' : 'border-slate-200',
                 ].join(' ')}
               >
                 {/* Header categoria */}
@@ -523,8 +522,8 @@ export function StallStep2Menu({
                             data-prod-index={pIdx}
                             data-prod-cat-index={catIdx}
                             className={[
-                              'flex items-center justify-between gap-3 rounded-xl border px-3 py-2 transition',
-                              isOverProd ? 'border-orange-400 bg-orange-50/40' : 'border-zinc-200 bg-white',
+                              'flex items-center justify-between gap-3 rounded-xl border px-3 py-2 transition-all',
+                              isOverProd ? 'border-[#010077]/50 bg-[#010077]/5' : 'border-slate-200 bg-white hover:border-slate-300',
                             ].join(' ')}
                           >
                             <div className="flex min-w-0 items-start gap-2">
@@ -585,11 +584,11 @@ export function StallStep2Menu({
       </div>
 
       {/* Footer (igual Step 1) */}
-      <div className="flex items-center justify-between gap-3 rounded-b-3xl border-t border-zinc-200 bg-zinc-50 px-6 py-4">
+      <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/80 px-5 py-4 sm:px-6">
         <button
           type="button"
           onClick={onBack}
-          className="rounded-xl border border-zinc-300 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-900 hover:bg-zinc-50"
+          className="w-full sm:w-auto rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
         >
           Voltar
         </button>
@@ -597,16 +596,26 @@ export function StallStep2Menu({
         <button
           type="button"
           onClick={handleNext}
-          className="rounded-xl bg-orange-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600"
+          className="w-full sm:w-auto rounded-xl bg-[#010077] px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#010077]/90 transition-colors"
         >
           Continuar
         </button>
       </div>
 
       {/* ------------------ MODAIS ------------------ */}
-      <Modal open={addCatOpen} onClose={() => setAddCatOpen(false)} title="Adicionar categoria">
+      <Modal 
+        open={addCatOpen} 
+        onClose={() => setAddCatOpen(false)} 
+        title="Adicionar categoria"
+        footer={
+          <>
+            <BtnGhost onClick={() => setAddCatOpen(false)}>Cancelar</BtnGhost>
+            <BtnPrimary onClick={confirmAddCategory}>Salvar</BtnPrimary>
+          </>
+        }
+      >
         <div className="space-y-3">
-          <label className="text-sm font-semibold text-zinc-900">
+          <label className="text-sm font-semibold text-slate-900">
             Nome da categoria <span className="text-red-600">*</span>
           </label>
 
@@ -616,17 +625,22 @@ export function StallStep2Menu({
             placeholder="Ex.: Porções"
             className={inputCls()}
           />
-
-          <div className="flex justify-end gap-2">
-            <BtnGhost onClick={() => setAddCatOpen(false)}>Cancelar</BtnGhost>
-            <BtnPrimary onClick={confirmAddCategory}>Salvar</BtnPrimary>
-          </div>
         </div>
       </Modal>
 
-      <Modal open={editCatOpen} onClose={() => setEditCatOpen(false)} title="Editar categoria">
+      <Modal 
+        open={editCatOpen} 
+        onClose={() => setEditCatOpen(false)} 
+        title="Editar categoria"
+        footer={
+          <>
+            <BtnGhost onClick={() => setEditCatOpen(false)}>Cancelar</BtnGhost>
+            <BtnPrimary onClick={confirmEditCategory}>Salvar</BtnPrimary>
+          </>
+        }
+      >
         <div className="space-y-3">
-          <label className="text-sm font-semibold text-zinc-900">
+          <label className="text-sm font-semibold text-slate-900">
             Nome da categoria <span className="text-red-600">*</span>
           </label>
 
@@ -636,11 +650,6 @@ export function StallStep2Menu({
             placeholder="Ex.: Lanches"
             className={inputCls()}
           />
-
-          <div className="flex justify-end gap-2">
-            <BtnGhost onClick={() => setEditCatOpen(false)}>Cancelar</BtnGhost>
-            <BtnPrimary onClick={confirmEditCategory}>Salvar</BtnPrimary>
-          </div>
         </div>
       </Modal>
 
@@ -653,17 +662,38 @@ export function StallStep2Menu({
         onConfirm={confirmDeleteCategory}
       />
 
-      <Modal open={addProdOpen} onClose={() => setAddProdOpen(false)} title="Adicionar produto(s)">
+      <Modal 
+        open={addProdOpen} 
+        onClose={() => setAddProdOpen(false)} 
+        title="Adicionar produto(s)"
+        footer={
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="button"
+              onClick={addMoreDraft}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50 transition-colors w-full sm:w-auto"
+            >
+              <Plus className="h-4 w-4" />
+              Adicionar mais um produto
+            </button>
+
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 w-full sm:w-auto">
+              <BtnGhost onClick={() => setAddProdOpen(false)}>Cancelar</BtnGhost>
+              <BtnPrimary onClick={confirmAddProducts}>Salvar</BtnPrimary>
+            </div>
+          </div>
+        }
+      >
         <div className="space-y-3">
-          <div className="text-sm text-zinc-600">
+          <div className="text-sm text-slate-600 font-medium">
             Preencha os produtos e valores. Nome: <b>máx. 40</b>.
           </div>
 
           <div className="space-y-3">
             {prodDrafts.map((d, i) => (
-              <div key={i} className="grid grid-cols-1 gap-2 sm:grid-cols-5">
+              <div key={i} className="grid grid-cols-1 gap-2 sm:grid-cols-5 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
                 <div className="sm:col-span-3">
-                  <label className="text-xs font-semibold text-zinc-800">
+                  <label className="text-xs font-semibold text-slate-800">
                     Nome do produto <span className="text-red-600">*</span>
                   </label>
 
@@ -674,11 +704,11 @@ export function StallStep2Menu({
                     className={inputCls('mt-1')}
                   />
 
-                  <div className="mt-1 text-[11px] text-zinc-500">{(d.name ?? '').length}/40</div>
+                  <div className="mt-1 text-[11px] text-slate-500 font-medium">{(d.name ?? '').length}/40</div>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="text-xs font-semibold text-zinc-800">
+                  <label className="text-xs font-semibold text-slate-800">
                     Valor (R$) <span className="text-red-600">*</span>
                   </label>
 
@@ -693,28 +723,22 @@ export function StallStep2Menu({
               </div>
             ))}
           </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <button
-              type="button"
-              onClick={addMoreDraft}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-50"
-            >
-              <Plus className="h-4 w-4" />
-              Adicionar mais um produto
-            </button>
-
-            <div className="flex justify-end gap-2">
-              <BtnGhost onClick={() => setAddProdOpen(false)}>Cancelar</BtnGhost>
-              <BtnPrimary onClick={confirmAddProducts}>Salvar</BtnPrimary>
-            </div>
-          </div>
         </div>
       </Modal>
 
-      <Modal open={editProdOpen} onClose={() => setEditProdOpen(false)} title="Editar produto">
+      <Modal 
+        open={editProdOpen} 
+        onClose={() => setEditProdOpen(false)} 
+        title="Editar produto"
+        footer={
+          <>
+            <BtnGhost onClick={() => setEditProdOpen(false)}>Cancelar</BtnGhost>
+            <BtnPrimary onClick={confirmEditProduct}>Salvar</BtnPrimary>
+          </>
+        }
+      >
         <div className="space-y-3">
-          <label className="text-sm font-semibold text-zinc-900">
+          <label className="text-sm font-semibold text-slate-900">
             Nome do produto <span className="text-red-600">*</span>
           </label>
 
@@ -725,9 +749,9 @@ export function StallStep2Menu({
             className={inputCls()}
           />
 
-          <div className="text-[11px] text-zinc-500">{editProdName.length}/40</div>
+          <div className="text-[11px] text-slate-500 font-medium">{editProdName.length}/40</div>
 
-          <label className="text-sm font-semibold text-zinc-900">
+          <label className="text-sm font-semibold text-slate-900">
             Valor (R$) <span className="text-red-600">*</span>
           </label>
 
@@ -738,11 +762,6 @@ export function StallStep2Menu({
             className={inputCls()}
             inputMode="decimal"
           />
-
-          <div className="flex justify-end gap-2">
-            <BtnGhost onClick={() => setEditProdOpen(false)}>Cancelar</BtnGhost>
-            <BtnPrimary onClick={confirmEditProduct}>Salvar</BtnPrimary>
-          </div>
         </div>
       </Modal>
 
@@ -786,32 +805,40 @@ function Modal({
   onClose,
   title,
   children,
+  footer,
 }: {
   open: boolean
   onClose: () => void
   title: string
   children: React.ReactNode
+  footer?: React.ReactNode
 }) {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
       <button className="absolute inset-0 bg-black/40" aria-label="Fechar modal" onClick={onClose} />
 
-      <div className="relative z-10 w-[92vw] max-w-lg rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="text-lg font-bold text-zinc-900">{title}</h3>
+      <div className="relative z-10 flex max-h-[90vh] w-[92vw] max-w-lg flex-col rounded-3xl border border-slate-200 bg-white shadow-2xl">
+        <div className="flex shrink-0 items-start justify-between gap-3 p-6 pb-4 border-b border-slate-100">
+          <h3 className="text-xl font-bold text-[#010077]">{title}</h3>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-700"
+            className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
             aria-label="Fechar"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="mt-4">{children}</div>
+        <div className="overflow-y-auto p-6 pt-4 [scrollbar-width:thin]">{children}</div>
+
+        {footer && (
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 bg-slate-50/50 p-6">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -835,25 +862,27 @@ function ConfirmModal({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
       <button className="absolute inset-0 bg-black/40" aria-label="Fechar modal" onClick={onClose} />
 
-      <div className="relative z-10 w-[92vw] max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl">
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 rounded-xl bg-orange-50 p-2 text-orange-600">
-            <AlertTriangle className="h-5 w-5" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-lg font-bold text-zinc-900">{title}</h3>
-            <p className="mt-1 text-sm text-zinc-600">{description}</p>
+      <div className="relative z-10 flex max-h-[90vh] w-[92vw] max-w-md flex-col rounded-3xl border border-slate-200 bg-white shadow-2xl">
+        <div className="overflow-y-auto p-6">
+          <div className="flex items-start gap-4">
+            <div className="shrink-0 rounded-2xl bg-red-50 p-3 text-red-600">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+              <p className="mt-1.5 text-sm font-medium text-slate-500">{description}</p>
+            </div>
           </div>
         </div>
 
-        <div className="mt-6 flex gap-2">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 bg-slate-50/50 p-6">
           <button
             type="button"
             onClick={onClose}
-            className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 font-semibold text-zinc-900 hover:bg-zinc-50"
+            className="w-full sm:w-auto rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
           >
             Cancelar
           </button>
@@ -863,7 +892,7 @@ function ConfirmModal({
               onConfirm()
               onClose()
             }}
-            className="w-full rounded-xl bg-red-600 px-4 py-3 font-semibold text-white hover:bg-red-700"
+            className="w-full sm:w-auto rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-700 transition-colors"
           >
             {confirmText}
           </button>
@@ -878,7 +907,7 @@ function BtnPrimary({ children, onClick }: { children: React.ReactNode; onClick:
     <button
       type="button"
       onClick={onClick}
-      className="rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-orange-600"
+      className="w-full sm:w-auto rounded-xl bg-[#010077] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#010077]/90 transition-colors"
     >
       {children}
     </button>
@@ -890,7 +919,7 @@ function BtnGhost({ children, onClick }: { children: React.ReactNode; onClick: (
     <button
       type="button"
       onClick={onClick}
-      className="rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-900 hover:bg-zinc-50"
+      className="w-full sm:w-auto rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
     >
       {children}
     </button>
@@ -900,9 +929,9 @@ function BtnGhost({ children, onClick }: { children: React.ReactNode; onClick: (
 function inputCls(extra?: string) {
   return [
     extra ?? '',
-    'w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900',
-    'placeholder:text-zinc-500 shadow-sm outline-none transition',
-    'focus:border-orange-500 focus:ring-4 focus:ring-orange-100',
+    'w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900',
+    'placeholder:text-slate-400 shadow-sm outline-none transition-all',
+    'focus:border-[#010077] focus:ring-4 focus:ring-[#010077]/10',
   ]
     .join(' ')
     .trim()

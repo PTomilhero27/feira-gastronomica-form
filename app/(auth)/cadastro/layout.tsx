@@ -23,9 +23,9 @@ export const metadata: Metadata = {
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-dvh w-full bg-background">
+    <div className="min-h-dvh w-full bg-white">
       {/* Fundo sutil (sem exagero), ajuda a dar profundidade */}
-      <div className="pointer-events-none fixed inset-0 bg-gradient-to-b from-muted/40 via-background to-background" />
+      <div className="pointer-events-none fixed inset-0 bg-white" />
 
       {/* Conteúdo centralizado */}
       <main className="relative mx-auto flex min-h-dvh w-full max-w-4xl items-center justify-center px-4 py-8 sm:px-6">

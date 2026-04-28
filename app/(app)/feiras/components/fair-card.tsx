@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
 import { useStallsListQuery } from '@/app/modules/stalls/stalls.queries'
 import type { ExhibitorFairListItem } from '@/app/modules/exhibitor-fairs/exhibitor-fairs.schema'
@@ -157,262 +158,179 @@ export default function FairCard({ fair }: { fair: ExhibitorFairListItem }) {
 
   return (
     <Collapsible open={expanded} onOpenChange={setExpanded}>
-      <Card className="overflow-hidden rounded-2xl">
-        <CardHeader className="space-y-3">
-          {/* Header: título/badges + ações */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
+      <Card className={`overflow-hidden rounded-2xl border-slate-200 transition-shadow ${expanded ? 'shadow-md border-t-4 border-t-[#010077]' : 'shadow-sm border-t'}`}>
+        <CardHeader className="space-y-4 pb-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-lg font-semibold truncate">{fair.fairName}</h2>
-
-                <Badge variant="secondary">{labelFairStatus(fair.fairStatus)}</Badge>
-                <Badge variant="outline">{labelOwnerFairStatus(fair.ownerFairStatus)}</Badge>
-
-                {/* Badge de “vencimento” (o que o expositor realmente precisa saber) */}
-                {paymentSummary?.nextDueDate && (
-                  <Badge className={dueUrgencyBadgeClass(dueUrgency)}>
-                    {dueUrgencyLabel(dueUrgency)}
-                  </Badge>
-                )}
-
-                {/* Badge de contrato (opcional) */}
-                {contract && (
-                  <Badge className={contractBadgeClass(contract.status)}>
-                    {labelContractStatus(contract.status)}
-                  </Badge>
-                )}
+                <h2 className="text-xl font-bold text-[#010077] truncate">{fair.fairName}</h2>
+                <Badge className="bg-[#f5bd2c]/20 text-[#010077] hover:bg-[#f5bd2c]/30 border-none shadow-none text-xs px-2.5">
+                  {labelFairStatus(fair.fairStatus)}
+                </Badge>
+                <Badge variant="outline" className="text-[#010077] border-[#010077]/20 text-xs px-2.5">
+                  {labelOwnerFairStatus(fair.ownerFairStatus)}
+                </Badge>
               </div>
-
-              <p className="text-sm text-muted-foreground mt-1">
-                Gerencie suas barracas e acompanhe pagamento/contrato desta feira.
+              <p className="text-sm text-slate-500 mt-1.5">
+                Acompanhe o status da sua participação, pagamentos e contrato.
               </p>
-
-              {/* Resumo quando recolhido */}
-              {!expanded && (
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Badge variant="secondary" className="gap-1.5 rounded-full">
-                    <Store className="h-3.5 w-3.5" />
-                    <span className="font-semibold text-foreground">
-                      {fair.stallsLinkedQty}/{fair.stallsQtyPurchased}
-                    </span>
-                    <span className="text-muted-foreground">barracas vinculadas</span>
-                  </Badge>
-
-                  {paymentSummary && (
-                    <Badge variant="secondary" className="gap-1.5 rounded-full">
-                      <CreditCard className="h-3.5 w-3.5" />
-                      <span className="font-semibold text-foreground">
-                        {paymentSummary.paidCount}/{paymentSummary.installmentsCount}
-                      </span>
-                      <span className="text-muted-foreground">parcelas pagas</span>
-                    </Badge>
-                  )}
-                </div>
-              )}
             </div>
 
-            {/* Ações */}
-            <div className="flex items-center gap-2">
+            {/* Ações e recolher */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                onClick={handleClickLink}
+                disabled={stallsQuery.isLoading}
+                className="rounded-xl bg-[#010077] text-white hover:bg-[#010077]/90 shadow-sm font-semibold"
+              >
+                Vincular barraca
+              </Button>
               <CollapsibleTrigger asChild>
                 <Button
                   type="button"
                   variant="ghost"
-                  className="rounded-xl border border-transparent hover:border-border"
+                  className="rounded-xl text-[#010077] hover:bg-[#010077]/5"
                   aria-label={expanded ? 'Recolher detalhes da feira' : 'Abrir detalhes da feira'}
                 >
                   <span className="font-medium">{expanded ? 'Recolher' : 'Detalhes'}</span>
                   <ChevronDown
-                    className={`ml-2 h-4 w-4 transition-transform ${
+                    className={`ml-1 h-4 w-4 transition-transform ${
                       expanded ? 'rotate-180' : 'rotate-0'
                     }`}
                   />
                 </Button>
               </CollapsibleTrigger>
-
-              <Button
-                onClick={handleClickLink}
-                disabled={stallsQuery.isLoading}
-                className="rounded-xl"
-              >
-                Vincular barraca
-              </Button>
             </div>
+          </div>
+
+          {/* Progresso de barracas (Visível mesmo recolhido) */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 bg-slate-50/80 rounded-xl p-4 border border-slate-100">
+            <div className="flex items-center gap-3 w-full sm:w-auto flex-1">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#010077]/10 text-[#010077]">
+                <Store className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between sm:justify-start sm:gap-4 mb-1.5">
+                  <span className="text-sm font-semibold text-slate-900">Barracas vinculadas</span>
+                  <span className="text-sm font-bold text-[#010077]">{fair.stallsLinkedQty}/{fair.stallsQtyPurchased}</span>
+                </div>
+                <div className="h-2 w-full sm:w-56 rounded-full bg-slate-200 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-[#f5bd2c] transition-all"
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Divisor em telas grandes */}
+            <div className="hidden sm:block w-px h-10 bg-slate-200"></div>
+
+            {/* Financeiro rapido */}
+            {paymentSummary && (
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#010077]/10 text-[#010077]">
+                  <CreditCard className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-slate-900">Pagamento</div>
+                  <div className="text-sm text-slate-500">
+                    <span className="font-bold text-[#010077]">{paymentSummary.paidCount}/{paymentSummary.installmentsCount}</span> parcelas pagas
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </CardHeader>
 
         <CollapsibleContent>
-          <Separator />
+          <CardContent className="pt-2 pb-6">
+            <Tabs defaultValue="barracas" className="w-full">
+              <TabsList className="bg-slate-100/80 p-1 rounded-xl mb-6 h-auto flex flex-col sm:flex-row w-full sm:w-fit">
+                <TabsTrigger value="barracas" className="w-full sm:w-auto rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#010077] data-[state=active]:shadow-sm py-2 px-6 text-sm font-semibold transition-all">
+                  Operação & Barracas
+                </TabsTrigger>
+                <TabsTrigger value="financeiro" className="w-full sm:w-auto rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#010077] data-[state=active]:shadow-sm py-2 px-6 text-sm font-semibold relative transition-all">
+                  Financeiro
+                  {dueUrgency === 'OVERDUE' && (
+                    <span className="absolute top-2 right-2 flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+                    </span>
+                  )}
+                  {dueUrgency === 'DUE_TODAY' && (
+                    <span className="absolute top-2 right-2 flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="contrato" className="w-full sm:w-auto rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#010077] data-[state=active]:shadow-sm py-2 px-6 text-sm font-semibold transition-all">
+                  Contrato
+                </TabsTrigger>
+              </TabsList>
 
-          <CardContent className="py-5 space-y-4">
-            {/* Linha superior: Barracas + Tamanhos + Contrato (compacto) */}
-            <div className="grid gap-3 md:grid-cols-3">
-              {/* Barracas */}
-              <div className="rounded-xl border bg-muted/20 p-4">
-                <p className="text-sm font-medium">Barracas</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Compradas:{' '}
-                  <span className="font-semibold text-foreground">{fair.stallsQtyPurchased}</span>
-                  {' • '}
-                  Vinculadas:{' '}
-                  <span className="font-semibold text-foreground">
-                    {fair.stallsLinkedQty}/{fair.stallsQtyPurchased}
-                  </span>
-                </p>
-
-                <div className="mt-3">
-                  <div className="h-2 w-full rounded-full bg-muted">
-                    <div
-                      className="h-2 rounded-full bg-primary transition-all"
-                      style={{ width: `${progressPct}%` }}
-                    />
+              {/* ABA BARRACAS */}
+              <TabsContent value="barracas" className="space-y-4 focus-visible:outline-none">
+                <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Store className="h-4 w-4 text-[#010077]" />
+                    <p className="font-semibold text-[#010077]">Tamanhos comprados</p>
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">{progressPct}% vinculadas</p>
+                  <p className="text-sm text-slate-600 mt-2 font-medium">{sizesLabel}</p>
                 </div>
-              </div>
+                
+                {/* O LinkedStallsList já é bonito, podemos mantê-lo aqui */}
+                <LinkedStallsList fairId={fair.fairId} linkedStalls={fair.linkedStalls} />
+              </TabsContent>
 
-              {/* Tamanhos */}
-              <div className="rounded-xl border bg-muted/20 p-4">
-                <p className="text-sm font-medium">Tamanhos comprados</p>
-                <p className="mt-2 text-sm text-muted-foreground">{sizesLabel}</p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Resumo por tamanho baseado nas compras cadastradas pela organização.
-                </p>
-              </div>
-
-              {/* Contrato (compacto) */}
-              <div className="rounded-xl border bg-muted/20 p-4">
-                <p className="text-sm font-medium">Contrato</p>
-
-                {!contract ? (
-                  <p className="mt-2 text-sm text-muted-foreground">Ainda não há contrato gerado.</p>
-                ) : (
-                  <div className="mt-2 space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Status:</span>
-                      <span className="text-sm font-semibold">
-                        {labelContractStatus(contract.status)}
-                      </span>
-                    </div>
-
-                    {contract.signUrl ? (
-                      <div className="text-xs text-muted-foreground">Link de assinatura disponível.</div>
-                    ) : contract.pdfPath ? (
-                      <div className="text-xs text-muted-foreground">PDF emitido.</div>
-                    ) : (
-                      <div className="text-xs text-muted-foreground">Aguardando emissão.</div>
-                    )}
-
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <Button
-                        type="button"
-                        variant="default"
-                        className="rounded-xl"
-                        disabled={!contract.signUrl}
-                        onClick={() => {
-                          if (!contract.signUrl) return
-                          window.open(contract.signUrl, '_blank', 'noopener,noreferrer')
-                        }}
-                      >
-                        <PenLine className="mr-2 h-4 w-4" />
-                        Assinar
-                      </Button>
-
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        className="rounded-xl"
-                        disabled={!contract.pdfPath}
-                        onClick={() => {
-                          // ✅ Recomendação: criar endpoint seguro de download no portal.
-                          alert('PDF disponível')
-                        }}
-                      >
-                        <FileText className="mr-2 h-4 w-4" />
-                        PDF (em breve)
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Pagamento (maior e detalhado) */}
-            <div className="rounded-2xl border p-4">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">Pagamento</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Detalhes por barraca (linha de compra). O financeiro é configurado pela organização.
-                  </p>
-                </div>
-
-                {/* Status/urgência em badge */}
-                {paymentSummary?.nextDueDate ? (
-                  <Badge className={dueUrgencyBadgeClass(dueUrgency)}>
-                    {dueUrgencyLabel(dueUrgency)}
-                  </Badge>
-                ) : null}
-              </div>
-
-              {!paymentSummary && purchaseRows.length === 0 ? (
-                <div className="mt-3 text-sm text-muted-foreground">
-                  Plano de pagamento ainda não foi configurado pela organização.
-                </div>
-              ) : (
-                <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                  {/* Total geral */}
-                  <div className="rounded-xl border bg-muted/20 p-4">
-                    <div className="text-xs text-muted-foreground">Total comprado</div>
-                    <div className="mt-1 text-lg font-semibold">{formatMoneyBRL(totals.totalCents)}</div>
-
-                    <div className="mt-3 grid gap-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Total pago</span>
-                        <span className="font-semibold">{formatMoneyBRL(totals.paidCents)}</span>
+              {/* ABA FINANCEIRO */}
+              <TabsContent value="financeiro" className="space-y-4 focus-visible:outline-none">
+                {/* Resumo Financeiro */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                    <h3 className="font-semibold text-[#010077] mb-4 flex items-center gap-2">
+                      <CreditCard className="h-4 w-4" /> Resumo Geral
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-50 pb-2.5">
+                        <span className="text-sm font-medium text-slate-500">Total da compra</span>
+                        <span className="font-bold text-slate-900">{formatMoneyBRL(totals.totalCents)}</span>
                       </div>
-
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Em aberto</span>
-                        <span className="font-semibold">{formatMoneyBRL(totals.remainingCents)}</span>
+                      <div className="flex items-center justify-between border-b border-slate-50 pb-2.5">
+                        <span className="text-sm font-medium text-slate-500">Valor pago</span>
+                        <span className="font-bold text-emerald-600">{formatMoneyBRL(totals.paidCents)}</span>
                       </div>
-
-                      {paymentSummary?.nextDueDate ? (
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Próximo vencimento</span>
-                          <span className="font-semibold">
-                            {formatDateBRDateOnly(paymentSummary.nextDueDate)}
-                          </span>
-                        </div>
-                      ) : null}
+                      <div className="flex items-center justify-between pt-0.5">
+                        <span className="text-sm font-medium text-slate-500">Em aberto</span>
+                        <span className="font-bold text-rose-600">{formatMoneyBRL(totals.remainingCents)}</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Próximos vencimentos */}
-                  <div className="rounded-xl border bg-muted/20 p-4">
-                    <div className="text-xs text-muted-foreground">Próximos vencimentos</div>
-
+                  <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                    <h3 className="font-semibold text-[#010077] mb-4">Próximos vencimentos</h3>
                     {(totals.upcoming?.length ?? 0) === 0 ? (
-                      <div className="mt-2 text-sm text-muted-foreground">Nenhuma parcela em aberto.</div>
+                      <div className="flex h-[104px] items-center justify-center text-sm font-medium text-slate-400 bg-slate-50/50 rounded-lg border border-slate-100 border-dashed">
+                        Nenhuma parcela em aberto no momento.
+                      </div>
                     ) : (
-                      <div className="mt-2 space-y-2">
+                      <div className="space-y-2">
                         {totals.upcoming.map((i) => (
-                          <div
-                            key={`${i.purchaseId}-${i.number}`}
-                            className="flex items-center justify-between text-sm"
-                          >
-                            <div className="min-w-0">
-                              <div className="font-medium truncate">
-                                {labelStallSize(i.stallSize)} • Parcela {i.number}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                Compra #{i.purchaseId.slice(-6).toUpperCase()}
-                              </div>
+                          <div key={`${i.purchaseId}-${i.number}`} className="flex items-center justify-between rounded-lg bg-slate-50 p-3 border border-slate-100/50">
+                            <div>
+                              <p className="text-sm font-bold text-slate-900">Parcela {i.number}</p>
+                              <p className="text-xs text-slate-500 font-medium mt-0.5">Compra #{i.purchaseId.slice(-6).toUpperCase()}</p>
                             </div>
                             <div className="text-right">
-                              <div className="font-semibold">{formatMoneyBRL(i.amountCents)}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {formatDateBRDateOnly(i.dueDate)}
-                              </div>
+                              <p className="text-sm font-bold text-slate-900">{formatMoneyBRL(i.amountCents)}</p>
+                              <p className={`text-xs font-semibold mt-0.5 ${
+                                isoToYmd(i.dueDate) < todayYmd() ? 'text-red-600' :
+                                isoToYmd(i.dueDate) === todayYmd() ? 'text-amber-600' :
+                                'text-slate-500'
+                              }`}>
+                                Vence em {formatDateBRDateOnly(i.dueDate)}
+                              </p>
                             </div>
                           </div>
                         ))}
@@ -420,87 +338,104 @@ export default function FairCard({ fair }: { fair: ExhibitorFairListItem }) {
                     )}
                   </div>
                 </div>
-              )}
 
-              {/* Linhas (compras) detalhadas */}
-              {purchaseRows.length > 0 && (
-                <div className="mt-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium">Compras (por barraca)</div>
-                    <Badge variant="secondary">{purchaseRows.length}</Badge>
-                  </div>
+                {/* Compras (Detalhes) */}
+                {purchaseRows.length > 0 && (
+                  <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                     <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold text-[#010077]">Detalhes das Compras</h3>
+                      <Badge className="bg-[#f5bd2c]/20 text-[#010077] hover:bg-[#f5bd2c]/30 border-none shadow-none">{purchaseRows.length}</Badge>
+                    </div>
 
-                  <div className="mt-2 grid gap-2">
-                    {purchaseRows.map((p) => (
-                      <div
-                        key={p.id}
-                        className="rounded-xl border p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
-                      >
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <div className="font-medium truncate">
-                              Compra #{p.id.slice(-6).toUpperCase()}
+                    <div className="grid gap-3">
+                      {purchaseRows.map((p) => (
+                        <div key={p.id} className="rounded-xl border border-slate-100 bg-slate-50/80 p-4 hover:border-slate-300 transition-colors">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="space-y-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-bold text-[#010077]">Compra #{p.id.slice(-6).toUpperCase()}</span>
+                                <Badge variant="outline" className="border-slate-200 bg-white text-slate-700 font-semibold">{labelStallSize(p.stallSize)}</Badge>
+                                <Badge className={purchaseStatusBadgeClass(p.status) + " shadow-none font-semibold"}>{labelPaymentStatus(p.status)}</Badge>
+                              </div>
+                              <p className="text-sm text-slate-600 font-medium">
+                                {formatMoneyBRL(p.totalCents)} no total • {formatMoneyBRL(p.remainingCents)} em aberto
+                              </p>
                             </div>
-                            <Badge variant="secondary">{labelStallSize(p.stallSize)}</Badge>
 
-                            <Badge className={purchaseStatusBadgeClass(p.status)}>
-                              {labelPaymentStatus(p.status)}
-                            </Badge>
-
-                            <Badge variant="outline" className="rounded-full">
-                              Disponível: {p.remainingQty}
-                            </Badge>
-                          </div>
-
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            Total:{' '}
-                            <span className="font-semibold text-foreground">
-                              {formatMoneyBRL(p.totalCents)}
-                            </span>
-                            {' • '}
-                            Pago:{' '}
-                            <span className="font-semibold text-foreground">
-                              {formatMoneyBRL(p.paidTotalCents)}
-                            </span>
-                            {' • '}
-                            Falta:{' '}
-                            <span className="font-semibold text-foreground">
-                              {formatMoneyBRL(p.remainingCents)}
-                            </span>
-                          </div>
-
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            Parcelas:{' '}
-                            <span className="font-semibold text-foreground">
-                              {p.installmentsPaidCount}
-                            </span>
-                            /
-                            <span className="font-semibold text-foreground">
-                              {p.installmentsTotalCount}
-                            </span>
-                            {p.nextDueDate ? (
-                              <>
-                                {' • '}Próximo venc.:{' '}
-                                <span className="font-semibold text-foreground">
-                                  {formatDateBRDateOnly(p.nextDueDate)}
-                                </span>
-                              </>
-                            ) : null}
+                            <div className="bg-white px-4 py-2.5 rounded-xl border border-slate-100 text-sm shadow-sm">
+                              <div className="flex justify-between gap-6">
+                                <span className="text-slate-500 font-medium">Parcelas pagas:</span>
+                                <span className="font-bold text-[#010077]">{p.installmentsPaidCount}/{p.installmentsTotalCount}</span>
+                              </div>
+                              {p.nextDueDate && (
+                                <div className="flex justify-between gap-6 mt-1.5 pt-1.5 border-t border-slate-50">
+                                  <span className="text-slate-500 font-medium">Próximo venc.:</span>
+                                  <span className="font-bold text-slate-900">{formatDateBRDateOnly(p.nextDueDate)}</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
-
-                        <div className="text-xs text-muted-foreground" />
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
+                )}
+              </TabsContent>
+
+              {/* ABA CONTRATO */}
+              <TabsContent value="contrato" className="focus-visible:outline-none">
+                <div className="rounded-xl border border-slate-100 bg-white p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] max-w-xl mx-auto text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#f5bd2c]/15 mb-5 shadow-inner">
+                    <FileText className="h-8 w-8 text-[#010077]" />
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-[#010077]">Contrato de Participação</h3>
+                  
+                  {!contract ? (
+                    <p className="text-sm text-slate-500 mt-3 leading-relaxed">
+                      Ainda não há contrato gerado para sua participação nesta feira. Assim que a organização liberar, ele aparecerá aqui e você poderá assiná-lo digitalmente.
+                    </p>
+                  ) : (
+                    <div className="mt-6 space-y-6">
+                      <div className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-4 py-1.5 text-sm border border-slate-200">
+                        <span className="text-slate-500 font-medium">Status do documento:</span>
+                        <span className="font-bold text-[#010077]">{labelContractStatus(contract.status)}</span>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                        <Button
+                          type="button"
+                          className="w-full sm:w-auto rounded-xl bg-[#010077] text-white hover:bg-[#010077]/90 shadow-sm font-semibold disabled:bg-slate-100 disabled:text-slate-400"
+                          disabled={!contract.signUrl}
+                          onClick={() => {
+                            if (!contract.signUrl) return
+                            window.open(contract.signUrl, '_blank', 'noopener,noreferrer')
+                          }}
+                        >
+                          <PenLine className="mr-2 h-4 w-4" />
+                          {contract.status === 'SIGNED' ? 'Ver Assinatura' : 'Assinar Contrato'}
+                        </Button>
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full sm:w-auto rounded-xl border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 disabled:bg-slate-50 disabled:text-slate-300"
+                          disabled={!contract.pdfPath}
+                          onClick={() => {
+                            alert('Download do PDF em breve')
+                          }}
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          Baixar PDF
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </TabsContent>
+            </Tabs>
 
-            {/* Barracas vinculadas */}
-            <LinkedStallsList fairId={fair.fairId} linkedStalls={fair.linkedStalls} />
-
-            {/* Dialogs */}
+            {/* Dialogs mantidos inalterados */}
             <LinkStallDialog open={linkOpen} onOpenChange={setLinkOpen} fair={fair} myStalls={stalls} />
             <AllLinkedAlertDialog open={allLinkedOpen} onOpenChange={setAllLinkedOpen} />
           </CardContent>
@@ -544,6 +479,8 @@ function labelOwnerFairStatus(value: ExhibitorFairListItem['ownerFairStatus']) {
 
 export function labelStallSize(value: string) {
   switch (value) {
+    case 'CART':
+      return 'Carrinho'
     case 'SIZE_2X2':
       return '2m x 2m'
     case 'SIZE_3X3':
@@ -556,6 +493,7 @@ export function labelStallSize(value: string) {
       return value
   }
 }
+
 
 function labelPaymentStatus(status: ExhibitorFairListItem['purchases'][number]['status']) {
   switch (status) {

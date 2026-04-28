@@ -12,9 +12,12 @@
 import { api } from "../shared/http/api"
 import {
   ExhibitorLoginPayloadSchema,
+  ForgotPasswordPayloadSchema,
   SetPasswordWithTokenPayloadSchema,
   type ExhibitorLoginPayload,
   type ExhibitorLoginResponse,
+  type ForgotPasswordPayload,
+  type ForgotPasswordResponse,
   type SetPasswordWithTokenPayload,
   type SetPasswordWithTokenResponse,
   type ValidateExhibitorTokenResponse,
@@ -69,3 +72,23 @@ export async function exhibitorLogin(
   )
 
 }
+
+/**
+ * Solicitar recuperação de senha.
+ * Backend:
+ * - POST /exhibitor-auth/forgot-password
+ *
+ * Decisão de segurança:
+ * - Retorna sempre mensagem genérica (não revela se o email existe)
+ */
+export async function forgotPassword(
+  payload: ForgotPasswordPayload,
+): Promise<ForgotPasswordResponse> {
+  const parsed = ForgotPasswordPayloadSchema.parse(payload)
+
+  return await api.post(
+    "exhibitor-auth/forgot-password",
+    parsed,
+  )
+}
+

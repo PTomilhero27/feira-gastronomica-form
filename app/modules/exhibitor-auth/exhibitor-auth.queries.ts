@@ -1,20 +1,15 @@
-/**
- * Queries do TanStack para autenticação do expositor.
- *
- * Responsabilidade:
- * - Padronizar cache keys
- * - Facilitar reuso no futuro (ex.: "esqueci a senha", refresh, etc)
- */
 import { useMutation, useQuery } from "@tanstack/react-query"
 
 import {
   exhibitorLogin,
+  forgotPassword,
   setPasswordWithToken,
   validateExhibitorToken,
 } from "./exhibitor-auth.service"
 
 import type {
   ExhibitorLoginPayload,
+  ForgotPasswordPayload,
   SetPasswordWithTokenPayload,
 } from "./exhibitor-auth.schemas"
 
@@ -57,3 +52,13 @@ export function useExhibitorLoginMutation() {
     mutationFn: (payload: ExhibitorLoginPayload) => exhibitorLogin(payload),
   })
 }
+
+/**
+ * Recuperação de senha (forgot-password)
+ */
+export function useForgotPasswordMutation() {
+  return useMutation({
+    mutationFn: (payload: ForgotPasswordPayload) => forgotPassword(payload),
+  })
+}
+

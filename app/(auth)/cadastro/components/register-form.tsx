@@ -11,24 +11,22 @@ import { Spinner } from "@/components/ui/spinner";
 
 import { maskCpfCnpj, onlyDigits } from "@/app/modules/shared/utils/document";
 import { toast } from "@/components/ui/toast";
-import { useCreatePublicInterestMutation } from "@/app/modules/public/interests/public-interests.queries";
-import { publicInterestCreateSchema } from "@/app/modules/public/interests/public-interests.schemas";
-
+import { useCreatePublicInterestSimpleMutation } from "@/app/modules/public/interests/public-interests.queries";
+import { publicInterestSimpleCreateSchema } from "@/app/modules/public/interests/public-interests.schemas";
 
 /**
  * RegisterForm (Cadastro público de interessado)
  *
  * Responsabilidade:
- * - Coletar os dados básicos do interessado (sem senha)
- * - Enviar para o endpoint público /public/interests/upsert (create-only)
- * - Mostrar erro amigável quando o CPF/CNPJ já estiver cadastrado
+ * - Coletar dados básicos do interessado
+ * - Enviar para POST /public/interests/upsert
  *
  * Decisões:
- * - A inferência CPF/CNPJ é apenas visual (UX).
- * - Normalizamos document/phone antes de enviar para manter consistência com o backend.
- * - O submit usa mutation (TanStack Query) para controle explícito de loading/erro.
+ * - A inferência CPF/CNPJ é apenas visual (UX)
+ * - Normalizamos document/phone antes de enviar
+ * - Sem campos de senha (fluxo de interessado simples)
  */
-type InterestedRegisterFormValues = {
+type RegisterFormValues = {
   document: string;
   fullName: string;
   email: string;
@@ -38,11 +36,11 @@ type InterestedRegisterFormValues = {
 
 export function RegisterForm(props: {
   onBack: () => void;
-  onSuccess: () => void;
+  onSuccess: (email: string) => void;
 }) {
   const { onSuccess } = props;
 
-  const create = useCreatePublicInterestMutation();
+  const create = useCreatePublicInterestSimpleMutation();
 
   const {
     register,
@@ -50,7 +48,7 @@ export function RegisterForm(props: {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<InterestedRegisterFormValues>({
+  } = useForm<RegisterFormValues>({
     defaultValues: {
       document: "",
       fullName: "",
@@ -75,13 +73,7 @@ export function RegisterForm(props: {
     });
   }
 
-  async function onSubmit(values: InterestedRegisterFormValues) {
-    /**
-     * Payload normalizado (contrato do backend):
-     * - document e phone sempre em dígitos
-     * - e-mail em lowercase
-     * - stallsDescription pode virar null
-     */
+  async function onSubmit(values: RegisterFormValues) {
     const payload = {
       personType: onlyDigits(values.document).length === 14 ? ("PJ" as const) : ("PF" as const),
       document: onlyDigits(values.document),
@@ -91,28 +83,21 @@ export function RegisterForm(props: {
       stallsDescription: values.stallsDescription?.trim() || null,
     };
 
-    /**
-     * Validação final com Zod antes do POST:
-     * - Evita mandar lixo para a API e deixa o fluxo mais previsível.
-     */
-    const parsed = publicInterestCreateSchema.safeParse(payload);
+    // Validação final com Zod
+    const parsed = publicInterestSimpleCreateSchema.safeParse(payload);
     if (!parsed.success) {
+      const firstIssue = parsed.error.issues?.[0]?.message;
       toast.error({
         title: "Revise os dados",
-        subtitle: "Alguns campos estão inválidos. Verifique e tente novamente.",
+        subtitle: firstIssue ?? "Alguns campos estão inválidos.",
       });
       return;
     }
 
     try {
       await create.mutateAsync(parsed.data);
-      onSuccess();
+      onSuccess(payload.email);
     } catch (e: any) {
-      /**
-       * Mensagem vem pronta do backend quando:
-       * - CPF/CNPJ já existe: "Já existe um cadastro com este CPF/CNPJ."
-       * - ou validações de personType/document etc.
-       */
       toast.error({
         title: "Não foi possível enviar",
         subtitle: e?.message ?? "Tente novamente em instantes.",
@@ -125,10 +110,9 @@ export function RegisterForm(props: {
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-xl font-semibold">Cadastro de interessado</h1>
+        <h1 className="text-xl font-semibold">Demonstrar interesse</h1>
         <p className="text-sm text-muted-foreground">
-          Essas informações nos ajudam a entender sua operação e organizar os
-          próximos contatos.
+          Preencha seus dados para entrar na nossa lista de expositores.
         </p>
       </header>
 

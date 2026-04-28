@@ -133,3 +133,23 @@ export const ExhibitorLoginResponseSchema = z.object({
   owner: ExhibitorOwnerSchema,
 })
 export type ExhibitorLoginResponse = z.infer<typeof ExhibitorLoginResponseSchema>
+
+/**
+ * -------------------------
+ * ✅ RECUPERAÇÃO DE SENHA
+ * -------------------------
+ */
+
+/**
+ * Payload para solicitar reset de senha.
+ * Backend retorna mensagem genérica por segurança.
+ */
+export const ForgotPasswordPayloadSchema = z.object({
+  email: z.string().email("Informe um e-mail válido."),
+})
+export type ForgotPasswordPayload = z.infer<typeof ForgotPasswordPayloadSchema>
+
+export const ForgotPasswordResponseSchema = z.object({
+  message: z.string(),
+})
+export type ForgotPasswordResponse = z.infer<typeof ForgotPasswordResponseSchema>

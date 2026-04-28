@@ -23,26 +23,26 @@ export function StepProgress({
   const progressPct = total <= 1 ? 0 : (safeIndex / (total - 1)) * 100
 
   return (
-    <section className="rounded-3xl border border-zinc-200 bg-white shadow-sm">
+    <section className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
       {/* Header (mobile-friendly) */}
-      <div className="flex items-center justify-between gap-4 rounded-t-3xl bg-orange-50 px-5 py-4">
+      <div className="flex items-center justify-between gap-4 bg-slate-50/80 px-5 py-4 border-b border-slate-100">
         <div className="min-w-0">
-          <div className="text-sm font-semibold text-zinc-900">
-            Etapa <span className="font-extrabold">{safeIndex + 1}</span> de{' '}
-            <span className="font-extrabold">{total}</span>
+          <div className="text-sm font-semibold text-slate-900">
+            Etapa <span className="font-extrabold text-[#010077]">{safeIndex + 1}</span> de{' '}
+            <span className="font-extrabold text-[#010077]">{total}</span>
           </div>
         </div>
 
-        <div className="hidden text-xs font-semibold text-zinc-600 sm:block">
+        <div className="hidden text-xs font-bold text-slate-500 sm:block">
           {Math.round(progressPct)}%
         </div>
       </div>
 
       {/* Progress bar */}
       <div className="px-5">
-        <div className="relative -mt-2 mb-3 h-2 w-full overflow-hidden rounded-full bg-zinc-100">
+        <div className="relative -mt-2 mb-4 h-2 w-full overflow-hidden rounded-full bg-slate-100 shadow-inner">
           <div
-            className="h-full rounded-full bg-orange-500 transition-all"
+            className="h-full rounded-full bg-[#010077] transition-all"
             style={{ width: `${progressPct}%` }}
           />
         </div>
@@ -92,11 +92,11 @@ function StepChip({
   return (
     <div
       className={[
-        'flex items-center gap-2 rounded-2xl border px-3 py-2 transition',
+        'flex items-center gap-2 rounded-2xl border px-3 py-2 transition-all',
         // estados
-        isDone && 'border-green-200 bg-green-50',
-        isActive && 'border-orange-200 bg-orange-50',
-        !isDone && !isActive && 'border-zinc-200 bg-white',
+        isDone && 'border-emerald-200 bg-emerald-50/50',
+        isActive && 'border-[#010077]/30 bg-[#010077]/5 shadow-sm',
+        !isDone && !isActive && 'border-slate-200 bg-white',
         // no mobile parece chip; no desktop pode crescer
         'sm:px-4',
       ].join(' ')}
@@ -104,10 +104,10 @@ function StepChip({
     >
       <div
         className={[
-          'flex h-7 w-7 items-center justify-center rounded-full text-xs font-extrabold',
-          isDone && 'bg-green-600 text-white',
-          isActive && 'bg-orange-500 text-white',
-          !isDone && !isActive && 'bg-zinc-100 text-zinc-700',
+          'flex h-7 w-7 items-center justify-center rounded-full text-xs font-extrabold transition-colors',
+          isDone && 'bg-emerald-600 text-white',
+          isActive && 'bg-[#010077] text-white shadow-sm',
+          !isDone && !isActive && 'bg-slate-100 text-slate-500',
         ].join(' ')}
       >
         {isDone ? <Check className="h-4 w-4" /> : index + 1}
@@ -116,10 +116,10 @@ function StepChip({
       <div className="min-w-0 ">
         <div
           className={[
-            'truncate text-sm font-semibold',
-            isDone && 'text-green-700',
-            isActive && 'text-orange-700',
-            !isDone && !isActive && 'text-zinc-700',
+            'truncate text-sm font-bold',
+            isDone && 'text-emerald-700',
+            isActive && 'text-[#010077]',
+            !isDone && !isActive && 'text-slate-600',
           ].join(' ')}
           title={label}
         >
@@ -127,7 +127,7 @@ function StepChip({
         </div>
 
         {/* micro hint no desktop */}
-        <div className="hidden text-[11px] text-zinc-500 sm:block">
+        <div className="hidden text-[11px] font-medium text-slate-500 sm:block">
           {isDone ? 'Concluído' : isActive ? 'Em andamento' : isNext ? 'Próximo' : 'Pendente'}
         </div>
       </div>
@@ -138,7 +138,7 @@ function StepChip({
 function Connector({ isDone }: { isDone: boolean }) {
   return (
     <div className="hidden items-center sm:flex">
-      <div className={['h-[2px] w-6 rounded-full', isDone ? 'bg-green-300' : 'bg-zinc-200'].join(' ')} />
+      <div className={['h-[2px] w-6 rounded-full', isDone ? 'bg-emerald-300' : 'bg-slate-200'].join(' ')} />
     </div>
   )
 }

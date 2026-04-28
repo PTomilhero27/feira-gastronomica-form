@@ -31,10 +31,10 @@ export default function FairsPage() {
         ]}
       />
 
-      <div className="mt-6 rounded-2xl border bg-card p-6 shadow-sm">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-semibold tracking-tight">Feiras</h1>
-          <p className="text-muted-foreground">
+      <div className="mt-6 rounded-2xl bg-gradient-to-br from-[#010077] to-[#122154] p-8 shadow-[0_2px_15px_-3px_rgba(1,0,119,0.3)]">
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-3xl font-bold tracking-tight text-white">Feiras</h1>
+          <p className="text-slate-200 text-sm font-medium">
             Acompanhe sua participação, pagamento e vincule suas barracas na feira.
           </p>
         </div>
@@ -49,7 +49,7 @@ export default function FairsPage() {
         )}
 
         {isError && (
-          <Card className="rounded-2xl border-destructive/30">
+          <Card className="rounded-2xl border-red-200 bg-red-50/50 shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Não foi possível carregar suas feiras</CardTitle>
             </CardHeader>
@@ -68,7 +68,7 @@ export default function FairsPage() {
         )}
 
         {!isLoading && !isError && !hasItems && (
-          <Card className="rounded-2xl">
+          <Card className="rounded-2xl border-slate-200 shadow-sm bg-slate-50/50">
             <CardHeader>
               <CardTitle className="text-base">Nenhuma feira encontrada</CardTitle>
             </CardHeader>

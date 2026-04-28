@@ -55,9 +55,9 @@ function required(v: string) {
 function inputCls(extra?: string) {
   return [
     extra ?? '',
-    'w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900',
-    'placeholder:text-zinc-500 shadow-sm outline-none transition',
-    'focus:border-orange-500 focus:ring-4 focus:ring-orange-100',
+    'w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900',
+    'placeholder:text-slate-400 shadow-sm outline-none transition-all',
+    'focus:border-[#010077] focus:ring-4 focus:ring-[#010077]/10',
   ]
     .join(' ')
     .trim()
@@ -65,10 +65,10 @@ function inputCls(extra?: string) {
 
 function chipCls(active?: boolean) {
   return [
-    'inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition',
+    'inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition-all',
     active
-      ? 'border-orange-500 bg-orange-50 text-orange-700'
-      : 'border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50',
+      ? 'border-[#010077]/40 bg-[#010077]/5 text-[#010077]'
+      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300',
   ].join(' ')
 }
 
@@ -166,26 +166,25 @@ export function StallStep3Infra({
   const notesRequired = totalOutlets === 0 && validEquipmentsCount === 0 && !value.needsGas
 
   return (
-    <section className="rounded-3xl border border-zinc-200 bg-white shadow-sm">
+    <section className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
       {/* Header (igual Step 1/2) */}
-      <div className="rounded-t-3xl bg-orange-50 px-6 py-5">
-        <h3 className="text-lg font-bold text-zinc-900">Infraestrutura</h3>
-        <p className="mt-1 text-sm text-zinc-600">Informe necessidades de energia, gás e equipamentos.</p>
+      <div className="bg-slate-50/80 px-5 py-5 sm:px-6 border-b border-slate-100 relative">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#010077] to-[#254cc9]" />
+        <h3 className="text-lg font-bold text-[#010077]">Infraestrutura</h3>
+        <p className="mt-1 text-sm font-medium text-slate-500">Informe necessidades de energia, gás e equipamentos.</p>
       </div>
-
-      <div className="h-px bg-zinc-200" />
 
       <div className="px-6 py-6">
         {/* Métricas */}
-        <div className="mb-6 rounded-2xl border border-orange-200 bg-orange-50/60 p-4">
-          <div className="flex flex-wrap items-center gap-3 text-sm">
-            <span className="inline-flex items-center gap-2 font-semibold text-zinc-900">
-              <Package className="h-4 w-4 text-orange-600" />
+        <div className="mb-6 rounded-2xl border border-[#010077]/10 bg-[#010077]/5 p-4">
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            <span className="inline-flex items-center gap-2 font-semibold text-slate-800">
+              <Package className="h-4 w-4 text-[#010077]" />
               Total de equipamentos: {totalEquipQty}
             </span>
 
-            <span className="inline-flex items-center gap-2 font-semibold text-zinc-900">
-              <Zap className="h-4 w-4 text-orange-600" />
+            <span className="inline-flex items-center gap-2 font-semibold text-slate-800">
+              <Zap className="h-4 w-4 text-[#010077]" />
               Tomadas: 110={value.outlets110 || 0} • 220={value.outlets220 || 0} • outras={value.outletsOther || 0} (Total:{' '}
               {totalOutlets})
             </span>
@@ -194,11 +193,11 @@ export function StallStep3Infra({
 
         {/* Sugestões */}
         <div className="mb-4">
-          <div className="text-sm font-semibold text-zinc-900">Sugestões rápidas</div>
+          <div className="text-sm font-semibold text-slate-900">Sugestões rápidas</div>
           <div className="mt-2 flex flex-wrap gap-2">
             {EQUIP_SUGGESTIONS.slice(0, 10).map((s) => (
               <button key={s} type="button" className={chipCls(false)} onClick={() => addEquipment(s)}>
-                <Plus className="h-4 w-4 text-orange-600" />
+                <Plus className="h-4 w-4 text-[#010077]" />
                 {s}
               </button>
             ))}
@@ -206,17 +205,17 @@ export function StallStep3Infra({
         </div>
 
         {/* Equipamentos */}
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
-              <div className="text-sm font-semibold text-zinc-900">Equipamentos</div>
-              <div className="mt-0.5 text-xs text-zinc-600">Opcional. Se adicionar itens, todos precisam estar preenchidos.</div>
+              <div className="text-sm font-semibold text-slate-900">Equipamentos</div>
+              <div className="mt-0.5 text-xs text-slate-500 font-medium">Opcional. Se adicionar itens, todos precisam estar preenchidos.</div>
             </div>
 
             <button
               type="button"
               onClick={() => addEquipment('')}
-              className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600"
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#010077] px-3 py-2 text-sm font-semibold text-white hover:bg-[#010077]/90 transition-colors"
             >
               <Plus className="h-4 w-4" />
               Adicionar
@@ -227,10 +226,10 @@ export function StallStep3Infra({
             {(value.equipments ?? []).map((it, idx) => (
               <div
                 key={idx}
-                className="grid grid-cols-1 gap-2 rounded-2xl border border-zinc-200 bg-white p-3 sm:grid-cols-6 sm:items-end"
+                className="grid grid-cols-1 gap-2 rounded-2xl border border-slate-200 bg-slate-50/50 p-3 sm:grid-cols-6 sm:items-end"
               >
                 <div className="sm:col-span-4">
-                  <label className="text-xs font-semibold text-zinc-800">Nome do equipamento</label>
+                  <label className="text-xs font-semibold text-slate-800">Nome do equipamento</label>
                   <input
                     value={it.name}
                     onChange={(e) => updateEquipment(idx, { name: e.target.value })}
@@ -240,7 +239,7 @@ export function StallStep3Infra({
                 </div>
 
                 <div className="sm:col-span-1">
-                  <label className="text-xs font-semibold text-zinc-800">Qtde</label>
+                  <label className="text-xs font-semibold text-slate-800">Qtde</label>
                   <input
                     inputMode="numeric"
                     placeholder="1"
@@ -266,7 +265,7 @@ export function StallStep3Infra({
                   <button
                     type="button"
                     onClick={() => removeEquipment(idx)}
-                    className="mt-1 inline-flex h-[46px] w-full items-center justify-center rounded-xl border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 hover:text-red-600 sm:w-[46px]"
+                    className="mt-1 inline-flex h-[46px] w-full items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-500 hover:bg-slate-50 hover:text-red-600 hover:border-red-200 transition-colors sm:w-[46px]"
                     title="Remover"
                     aria-label="Remover equipamento"
                   >
@@ -276,20 +275,20 @@ export function StallStep3Infra({
               </div>
             ))}
 
-            {!value.equipments?.length ? <p className="text-sm text-zinc-600">Nenhum equipamento informado.</p> : null}
+            {!value.equipments?.length ? <p className="text-sm font-medium text-slate-500">Nenhum equipamento informado.</p> : null}
           </div>
         </div>
 
         {/* Tomadas */}
-        <div className="mt-5 rounded-2xl border border-zinc-200 bg-white p-4">
+        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
           <div className="mb-3">
-            <div className="text-sm font-semibold text-zinc-900">Tomadas necessárias</div>
-            <div className="mt-0.5 text-xs text-zinc-600">Opcional. Se não precisar de energia, escreva isso nas observações gerais.</div>
+            <div className="text-sm font-semibold text-slate-900">Tomadas necessárias</div>
+            <div className="mt-0.5 text-xs text-slate-500 font-medium">Opcional. Se não precisar de energia, escreva isso nas observações gerais.</div>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
-              <label className="text-xs font-semibold text-zinc-800">Tomadas 110V</label>
+              <label className="text-xs font-semibold text-slate-800">Tomadas 110V</label>
               <input
                 value={String(value.outlets110 ?? 0)}
                 onChange={(e) => onChange({ ...value, outlets110: Math.max(0, onlyInt(e.target.value)) })}
@@ -300,7 +299,7 @@ export function StallStep3Infra({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-zinc-800">Tomadas 220V</label>
+              <label className="text-xs font-semibold text-slate-800">Tomadas 220V</label>
               <input
                 value={String(value.outlets220 ?? 0)}
                 onChange={(e) => onChange({ ...value, outlets220: Math.max(0, onlyInt(e.target.value)) })}
@@ -311,7 +310,7 @@ export function StallStep3Infra({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-zinc-800">Outras</label>
+              <label className="text-xs font-semibold text-slate-800">Outras</label>
               <input
                 value={String(value.outletsOther ?? 0)}
                 onChange={(e) => onChange({ ...value, outletsOther: Math.max(0, onlyInt(e.target.value)) })}
@@ -324,28 +323,28 @@ export function StallStep3Infra({
         </div>
 
         {/* Gás */}
-        <div className="mt-5 rounded-2xl border border-zinc-200 bg-white p-4">
+        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-                <Flame className="h-4 w-4 text-orange-600" />
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                <Flame className="h-4 w-4 text-[#010077]" />
                 Precisa de gás (GLP)?
               </div>
-              <div className="mt-0.5 text-xs text-zinc-600">Opcional. Marque caso use botijão/GLP.</div>
+              <div className="mt-0.5 text-xs text-slate-500 font-medium">Opcional. Marque caso use botijão/GLP.</div>
             </div>
 
             <input
               type="checkbox"
               checked={Boolean(value.needsGas)}
               onChange={(e) => onChange({ ...value, needsGas: e.target.checked })}
-              className="mt-1 h-5 w-5 accent-orange-500"
+              className="mt-1 h-5 w-5 accent-[#010077]"
               aria-label="Precisa de gás (GLP)"
             />
           </div>
 
           {value.needsGas ? (
             <div className="mt-3">
-              <label className="text-xs font-semibold text-zinc-800">
+              <label className="text-xs font-semibold text-slate-800">
                 Observações sobre gás <span className="text-red-600">*</span>
               </label>
               <textarea
@@ -362,29 +361,29 @@ export function StallStep3Infra({
 
         {/* Observações gerais */}
         <div className="mt-5">
-          <label className="text-sm font-semibold text-zinc-900">
+          <label className="text-sm font-semibold text-slate-900">
             Observações gerais {notesRequired ? <span className="text-red-600">*</span> : null}
           </label>
 
           <textarea
             value={value.notes}
             onChange={(e) => onChange({ ...value, notes: e.target.value })}
-            placeholder='Ex.: "Não vou precisar de energia" ou "Preciso de ponto de água próximo"...'
+            placeholder='Ex.: "Não vou precisar de energia" '
             className={[inputCls('mt-2'), 'min-h-[96px] resize-none'].join(' ')}
           />
 
-          <div className="mt-2 text-xs text-zinc-500">
+          <div className="mt-2 text-xs font-medium text-slate-500">
             Se você não precisar de energia, escreva: <b>“Não vou precisar de energia”</b>.
           </div>
         </div>
       </div>
 
       {/* Footer (igual Step 1/2) */}
-      <div className="flex items-center justify-between gap-3 rounded-b-3xl border-t border-zinc-200 bg-zinc-50 px-6 py-4">
+      <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/80 px-5 py-4 sm:px-6">
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-300 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-900 hover:bg-zinc-50"
+          className="w-full sm:w-auto rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
         >
           Voltar
         </button>
@@ -393,7 +392,7 @@ export function StallStep3Infra({
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 disabled:opacity-50"
+          className="w-full sm:w-auto rounded-xl bg-[#010077] px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#010077]/90 disabled:opacity-50 transition-colors"
         >
           {isSubmitting ? 'Salvando...' : submitLabel}
         </button>

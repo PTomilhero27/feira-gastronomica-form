@@ -3,15 +3,16 @@ import { onlyDigits } from "../../shared/utils/document";
 import {
   nestErrorSchema,
   publicInterestCreateResponseSchema,
+  verifyEmailResponseSchema,
   type PublicInterestCreateRequest,
   type PublicInterestCreateResponse,
+  type VerifyEmailRequest,
+  type VerifyEmailResponse,
+  type ResendVerificationRequest,
 } from "./public-interests.schemas";
 
 /**
  * Erro tipado para a UI.
- *
- * Responsabilidade:
- * - Padronizar mensagem que será exibida no formulário (toast / inline)
  */
 export class PublicInterestCreateError extends Error {
   constructor(
@@ -24,23 +25,12 @@ export class PublicInterestCreateError extends Error {
 }
 
 /**
- * Service do cadastro público de interessados.
- *
- * Responsabilidade:
- * - Chamar POST /public/interests/upsert
- * - Normalizar payload (digitsOnly)
- * - Interpretar erro de "documento já cadastrado" e devolver mensagem amigável
- *
- * Observação:
- * - Nosso wrapper `api` retorna JSON em sucesso.
- * - Em erro, dependendo do wrapper, pode lançar exceção. Por isso tratamos defensivamente.
+ * Cadastro público (Owner + User + envio de código de verificação).
+ * POST /public/interests/upsert
  */
 export async function createPublicInterest(
   payload: PublicInterestCreateRequest,
 ): Promise<PublicInterestCreateResponse> {
-
-
-
   const normalized = {
     ...payload,
     document: onlyDigits(payload.document),
@@ -54,13 +44,7 @@ export async function createPublicInterest(
     const json = await api.post("public/interests/upsert", normalized);
     return publicInterestCreateResponseSchema.parse(json);
   } catch (err: any) {
-    /**
-     * Tratamento defensivo:
-     * - Se o wrapper api expõe "status" e "data", tentamos extrair.
-     * - Se não expõe, mostramos uma mensagem genérica.
-     */
     const status = err?.status ?? err?.response?.status;
-
     const rawData = err?.data ?? err?.response?.data;
     const parsed = rawData ? nestErrorSchema.safeParse(rawData) : null;
 
@@ -72,11 +56,32 @@ export async function createPublicInterest(
       else if (typeof m === "string") message = m;
     }
 
-    // ✅ Caso específico esperado: documento já cadastrado (400)
-    if (status === 400 && message) {
-      throw new PublicInterestCreateError(message, status);
-    }
-
     throw new PublicInterestCreateError(message, status);
   }
+}
+
+/**
+ * Verificar email com código de 6 dígitos.
+ * POST /public/interests/verify-email
+ */
+export async function verifyEmail(
+  payload: VerifyEmailRequest,
+): Promise<VerifyEmailResponse> {
+  const json = await api.post("public/interests/verify-email", {
+    email: payload.email.trim().toLowerCase(),
+    code: payload.code.trim(),
+  });
+  return verifyEmailResponseSchema.parse(json);
+}
+
+/**
+ * Reenviar código de verificação.
+ * POST /public/interests/resend-verification
+ */
+export async function resendVerification(
+  payload: ResendVerificationRequest,
+): Promise<{ message: string }> {
+  return await api.post("public/interests/resend-verification", {
+    email: payload.email.trim().toLowerCase(),
+  });
 }

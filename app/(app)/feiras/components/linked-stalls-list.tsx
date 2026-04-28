@@ -52,7 +52,7 @@ export default function LinkedStallsList({
       </div>
 
       {!hasItems ? (
-        <Card className="rounded-xl p-4 text-sm text-muted-foreground">
+        <Card className="rounded-xl border-slate-200 border-dashed bg-slate-50/50 p-8 text-center text-sm font-medium text-slate-500 shadow-sm">
           Nenhuma barraca vinculada ainda. Use “Vincular barraca” para selecionar quais barracas
           participarão.
         </Card>
@@ -61,65 +61,52 @@ export default function LinkedStallsList({
           {sorted.map((s) => (
             <Card
               key={s.stallId}
-              className="rounded-xl p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+              className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 transition-colors hover:border-slate-200 hover:bg-slate-50"
             >
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="font-medium truncate">{s.pdvName}</div>
-                  <Badge variant="secondary">{labelStallSize(s.stallSize)}</Badge>
-
-                  {s.purchaseStatus && (
-                    <Badge className={purchaseStatusBadgeClass(s.purchaseStatus)}>
-                      {labelPurchaseStatus(s.purchaseStatus)}
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="mt-1 text-xs text-muted-foreground space-y-1">
-                  <div>
-                    Compra:{' '}
-                    <span className="font-semibold text-foreground">
-                      {s.purchaseId ? `#${s.purchaseId.slice(-6).toUpperCase()}` : '—'}
-                    </span>
-                  </div>
-
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-2 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span>
-                      Total:{' '}
-                      <span className="font-semibold text-foreground">
-                        {s.purchaseTotalCents != null ? formatMoneyBRL(s.purchaseTotalCents) : '—'}
-                      </span>
-                    </span>
-
-                    <span>•</span>
-
-                    <span>
-                      Entrada:{' '}
-                      <span className="font-semibold text-foreground">
-                        {s.purchasePaidCents != null ? formatMoneyBRL(s.purchasePaidCents) : '—'}
-                      </span>
-                    </span>
-
-                    <span>•</span>
-
-                    <span>
-                      Parcelas:{' '}
-                      <span className="font-semibold text-foreground">
-                        {s.purchaseInstallmentsCount != null ? s.purchaseInstallmentsCount : '—'}
-                      </span>
-                    </span>
+                    <div className="font-bold text-[#010077] text-base truncate">{s.pdvName}</div>
+                    <Badge variant="outline" className="border-slate-200 bg-white text-slate-700 font-semibold">{labelStallSize(s.stallSize)}</Badge>
+                    {s.purchaseStatus && (
+                      <Badge className={purchaseStatusBadgeClass(s.purchaseStatus) + " shadow-none font-semibold"}>
+                        {labelPurchaseStatus(s.purchaseStatus)}
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <div className="text-sm font-medium text-slate-600">
+                    Compra: <span className="font-bold text-slate-900">{s.purchaseId ? `#${s.purchaseId.slice(-6).toUpperCase()}` : '—'}</span>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-end">
-                <Button
-                  variant="outline"
-                  className="rounded-xl"
-                  onClick={() => handleAskUnlink(s)}
-                >
-                  Desvincular
-                </Button>
+                <div className="flex flex-wrap items-center gap-3 sm:gap-5">
+                  {/* Info Financeira resumida */}
+                  <div className="flex items-center gap-3 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm text-sm">
+                    <div className="flex flex-col">
+                      <span className="text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-0.5">Total</span>
+                      <span className="font-bold text-slate-900">{s.purchaseTotalCents != null ? formatMoneyBRL(s.purchaseTotalCents) : '—'}</span>
+                    </div>
+                    <div className="w-px h-8 bg-slate-100"></div>
+                    <div className="flex flex-col">
+                      <span className="text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-0.5">Entrada</span>
+                      <span className="font-bold text-emerald-600">{s.purchasePaidCents != null ? formatMoneyBRL(s.purchasePaidCents) : '—'}</span>
+                    </div>
+                    <div className="w-px h-8 bg-slate-100"></div>
+                    <div className="flex flex-col">
+                      <span className="text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-0.5">Parcelas</span>
+                      <span className="font-bold text-[#010077]">{s.purchaseInstallmentsCount != null ? s.purchaseInstallmentsCount : '—'}</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    className="shrink-0 rounded-xl border-red-200 text-red-600 font-semibold hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors"
+                    onClick={() => handleAskUnlink(s)}
+                  >
+                    Desvincular
+                  </Button>
+                </div>
               </div>
             </Card>
           ))}

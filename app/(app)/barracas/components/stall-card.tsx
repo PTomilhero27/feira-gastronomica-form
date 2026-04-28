@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import * as React from 'react'
@@ -14,6 +15,17 @@ import {
 
 import type { Stall } from '@/app/modules/stalls/stalls.schema'
 
+/**
+ * Card de Barraca (Portal do Expositor)
+ *
+ * Responsabilidade:
+ * - Exibir um resumo visual da barraca (dados principais + métricas)
+ * - Expor ações de editar/excluir
+ *
+ * Ajuste (novo modelo):
+ * - Suporte ao tipo/tamanho CART (Carrinho)
+ * - UI deve exibir "Carrinho" tanto no Tipo quanto no Tamanho quando aplicável
+ */
 export function StallCard({
   stall,
   onEdit,
@@ -46,13 +58,13 @@ export function StallCard({
   const powerNeed = (stall?.powerNeed ?? null) as
     | null
     | {
-      outlets110?: number
-      outlets220?: number
-      outletsOther?: number
-      needsGas?: boolean
-      gasNotes?: string | null
-      notes?: string | null
-    }
+        outlets110?: number
+        outlets220?: number
+        outletsOther?: number
+        needsGas?: boolean
+        gasNotes?: string | null
+        notes?: string | null
+      }
 
   const totalOutlets =
     Number(powerNeed?.outlets110 ?? 0) +
@@ -60,183 +72,137 @@ export function StallCard({
     Number(powerNeed?.outletsOther ?? 0)
 
   const hasEnergy = totalOutlets > 0
-
   const createdAt = stall?.createdAt
 
   // infra text (mais clean)
   const infraTitle = hasEnergy ? 'Energia' : 'Sem energia'
 
+  /**
+   * Ajuste UX:
+   * - Se for CART, o "tamanho" deve aparecer como Carrinho
+   *   (mesmo se a API mandar stallSize vazio em dados legados).
+   */
+  const resolvedSizeLabel =
+    stallType === 'CART' ? 'Carrinho' : formatStallSize(stallSize)
 
   return (
-    <article className="group relative overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md">
-      {/* Top */}
-      <div className="flex items-start justify-between gap-4 px-5 pt-5">
-        <div className="flex min-w-0 items-start gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
-            <Store className="h-6 w-6" />
+    <article className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:shadow-md hover:border-slate-300">
+      {/* Indicador de cor superior sutil */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#010077] to-[#254cc9]" />
+
+      <div className="p-5">
+        {/* Header do Card */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#010077]/5 text-[#010077]">
+              <Store className="h-5 w-5" />
+            </div>
+
+            <div className="min-w-0">
+              <h3 className="truncate text-lg font-bold text-slate-900 leading-tight">
+                {pdvName || 'Barraca Sem Nome'}
+              </h3>
+              {bannerName && (
+                <p className="mt-0.5 truncate text-sm font-medium text-slate-500">
+                  {bannerName}
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="min-w-0">
-            <div className="truncate text-lg font-extrabold text-zinc-900">{pdvName || 'Barraca'}</div>
-            <div className="mt-0.5 truncate text-sm text-zinc-600">{bannerName || '—'}</div>
+          {/* Actions */}
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={onEdit}
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-[#010077]"
+              aria-label="Editar barraca"
+              title="Editar"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
 
+            <button
+              type="button"
+              onClick={() => id && onDelete(id)}
+              disabled={!id || Boolean(isDeleting)}
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Excluir barraca"
+              title="Excluir"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Categoria e Tamanho */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+            {formatStallType(stallType)}
+          </span>
+          <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+            {resolvedSizeLabel}
+          </span>
+          {mainCategory && (
+            <span className="inline-flex items-center rounded-full bg-[#f5bd2c]/20 px-2.5 py-0.5 text-xs font-bold text-[#010077]">
+              {formatCategory(mainCategory)}
+            </span>
+          )}
+        </div>
+
+        {/* Detalhes (Métricas Horizontais) */}
+        <div className="mt-5 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            
+            <div className="flex flex-col">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                <CreditCard className="h-3.5 w-3.5" /> Máquinas
+              </span>
+              <span className="mt-1 font-bold text-slate-900">{machinesQty}</span>
+            </div>
+
+            <div className="flex flex-col border-l border-slate-200/60 pl-3">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                <Users className="h-3.5 w-3.5" /> Equipe
+              </span>
+              <span className="mt-1 font-bold text-slate-900">{teamQty}</span>
+            </div>
+
+            <div className="flex flex-col border-slate-200/60 sm:border-l pl-0 sm:pl-3 pt-3 sm:pt-0 border-t sm:border-t-0">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                <UtensilsCrossed className="h-3.5 w-3.5" /> Cardápio
+              </span>
+              <span className="mt-1 font-bold text-slate-900">{menuCategoriesCount} cats.</span>
+            </div>
+
+            <div className="flex flex-col border-l border-slate-200/60 pl-3 pt-3 sm:pt-0 border-t sm:border-t-0">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                <PlugZap className="h-3.5 w-3.5" /> Infra
+              </span>
+              <span className="mt-1 font-bold text-slate-900">{infraTitle}</span>
+            </div>
 
           </div>
         </div>
 
-
-
-        {/* Actions */}
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={onEdit}
-            className={[
-              'inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-zinc-200 bg-white',
-              'text-zinc-700 shadow-sm transition',
-              // ✅ hover laranja (igual “clima” do delete, mas orange)
-              'hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700',
-              'focus:outline-none focus:ring-4 focus:ring-orange-100',
-            ].join(' ')}
-            aria-label="Editar barraca"
-            title="Editar"
-          >
-            <Pencil className="h-5 w-5" />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => id && onDelete(id)}
-            disabled={!id || Boolean(isDeleting)}
-            className={[
-              'inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-zinc-200 bg-white',
-              'text-zinc-700 shadow-sm transition',
-              'hover:border-red-200 hover:bg-red-50 hover:text-red-700',
-              'disabled:cursor-not-allowed disabled:opacity-50',
-              'focus:outline-none focus:ring-4 focus:ring-red-100',
-            ].join(' ')}
-            aria-label="Excluir barraca"
-            title="Excluir"
-          >
-            <Trash2 className="h-5 w-5" />
-          </button>
-        </div>
-
-      </div>
-        {/* Pills full width */}
-        <div className="w-full px-5 mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-          <Pill>{formatStallType(stallType)}</Pill>
-          <Pill>{formatStallSize(stallSize)}</Pill>
-          <Pill tone="orange">{mainCategory ? formatCategory(mainCategory) : '—'}</Pill>
-        </div>
-
-      {/* Divider */}
-      <div className="mt-5 h-px bg-zinc-200" />
-
-      {/* Metrics */}
-      <div className="px-5 py-5">
-        <div className="grid grid-cols-2 gap-3">
-          <MetricCard
-            title="Máquinas"
-            icon={<CreditCard className="h-5 w-5" />}
-            value={String(machinesQty)}
-            subtitle=""
-          />
-
-          <MetricCard
-            title="Equipe"
-            icon={<Users className="h-5 w-5" />}
-            value={String(teamQty)}
-            subtitle=""
-          />
-
-          <MetricCard
-            title="Infra"
-            icon={<PlugZap className="h-5 w-5" />}
-            value={infraTitle}
-            subtitle={""}
-          />
-
-          <MetricCard
-            title="Cardápio"
-            icon={<UtensilsCrossed className="h-5 w-5" />}
-            value={String(menuCategoriesCount)}
-            subtitle=""
-          />
-        </div>
-
-        {/* opcional: detalhe extra, bem clean */}
-        {equipmentsCount > 0 ? (
-          <div className="mt-3 text-xs text-zinc-500">
-            {equipmentsCount} item(ns) cadastrado(s)
+        {/* Equipamentos opcionais */}
+        {equipmentsCount > 0 && (
+          <div className="mt-3 text-[13px] font-medium text-slate-500 flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-300"></span>
+            {equipmentsCount} equipamento(s) • {equipmentsTotalQty} un.
           </div>
-        ) : null}
+        )}
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between gap-3 border-t border-zinc-200 bg-zinc-50 px-5 py-4">
-        <div className="flex items-center gap-2 text-sm text-zinc-600">
-          <Calendar className="h-4 w-4" />
+      <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/80 px-5 py-3">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+          <Calendar className="h-3.5 w-3.5" />
           <span>Criada em {formatDateBR(createdAt)}</span>
         </div>
-
-        {id ? <div className="text-xs font-semibold text-zinc-500">ID #{shortId(id)}</div> : null}
+        {id && <div className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">#{shortId(id)}</div>}
       </div>
     </article>
-  )
-}
-
-/* ---------------- UI ---------------- */
-
-function Pill({
-  children,
-  tone = 'neutral',
-}: {
-  children: React.ReactNode
-  tone?: 'neutral' | 'orange'
-}) {
-  const cls =
-    tone === 'orange'
-      ? 'border-orange-200 bg-orange-50 text-orange-700'
-      : 'border-zinc-200 bg-white text-zinc-800'
-
-  return (
-    <span
-      className={[
-        'inline-flex w-full items-center justify-center rounded-full border px-3 py-1.5 text-xs font-bold',
-        cls,
-      ].join(' ')}
-    >
-      <span className="truncate">{children}</span>
-    </span>
-  )
-}
-
-function MetricCard({
-  title,
-  icon,
-  value,
-  subtitle,
-}: {
-  title: string
-  icon: React.ReactNode
-  value: string
-  subtitle: string
-}) {
-  return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-sm font-semibold text-zinc-700">{title}</div>
-          <div className="mt-2 truncate text-lg font-extrabold text-zinc-900">{value}</div>
-          <div className="mt-1 line-clamp-2 text-sm text-zinc-600">{subtitle}</div>
-        </div>
-
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
-          {icon}
-        </div>
-      </div>
-    </div>
   )
 }
 
@@ -259,10 +225,12 @@ function formatStallType(v: string) {
   if (v === 'OPEN') return 'Aberta'
   if (v === 'CLOSED') return 'Fechada'
   if (v === 'TRAILER') return 'Trailer'
+  if (v === 'CART') return 'Carrinho'
   return v || '—'
 }
 
 function formatStallSize(v: string) {
+  if (v === 'CART') return 'Carrinho'
   if (v === 'TRAILER') return 'Trailer'
   if (v === 'SIZE_2X2') return '2m × 2m'
   if (v === 'SIZE_3X3') return '3m × 3m'

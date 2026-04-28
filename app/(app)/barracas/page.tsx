@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/(app)/barracas/page.tsx
 /**
  * Página "Minhas Barracas" (Portal do Expositor).
@@ -107,8 +108,7 @@ export default function StallsPage() {
     const items: Stall[] = listQuery.data?.items ?? []
 
     return (
-        <div className="space-y-6">
-
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 pb-12">
             <AppBreadcrumb
                 items={[
                     { label: "Dashboard", href: "/dashboard" },
@@ -116,29 +116,34 @@ export default function StallsPage() {
                 ]}
             />
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h1 className="text-xl font-semibold">Minhas Barracas</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Gerencie as barracas cadastradas no seu perfil.
+            <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-2xl bg-gradient-to-br from-[#010077] to-[#122154] p-6 sm:p-8 shadow-[0_2px_15px_-3px_rgba(1,0,119,0.3)] gap-6">
+                <div className="flex flex-col gap-1.5">
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Minhas Barracas</h1>
+                    <p className="text-sm font-medium text-slate-200">
+                        Gerencie as barracas cadastradas no seu perfil e os equipamentos vinculados a elas.
                     </p>
                 </div>
 
-                <Button onClick={() => router.push('/barracas/nova')}>
+                <Button 
+                    className="bg-white text-[#010077] hover:bg-slate-100 hover:text-[#010077]/90 font-bold px-6 shrink-0 w-full sm:w-auto"
+                    onClick={() => router.push('/barracas/nova')}
+                >
                     Cadastrar barraca
                 </Button>
             </div>
 
-            {items.length === 0 ? (
-                <EmptyStallsState />
-            ) : (
-                <StallList
-                    items={items}
-                    onEdit={(id) => router.push(`/barracas/${id}/editar`)}
-                    onDelete={handleDelete}
-                    isDeleting={deleteMutation.isPending}
-                />
-            )}
+            <div className="mt-8">
+                {items.length === 0 ? (
+                    <EmptyStallsState />
+                ) : (
+                    <StallList
+                        items={items}
+                        onEdit={(id) => router.push(`/barracas/${id}/editar`)}
+                        onDelete={handleDelete}
+                        isDeleting={deleteMutation.isPending}
+                    />
+                )}
+            </div>
         </div>
     )
 }

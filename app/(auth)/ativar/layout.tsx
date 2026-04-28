@@ -20,17 +20,12 @@ export const metadata: Metadata = {
 
 export default function ActivateLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-dvh w-full bg-background">
+    <div className="min-h-dvh w-full bg-white">
       {/* Fundo sutil para dar “cara de produto” sem pesar */}
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-muted/30 to-background" />
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-white" />
 
       <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-10">
-
-
-        {/* Conteúdo (login/registro/recuperação) */}
         <main>{children}</main>
-
-
       </div>
     </div>
   )

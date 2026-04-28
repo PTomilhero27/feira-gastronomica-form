@@ -7,13 +7,13 @@
  * - Validar token (via query)
  * - Mostrar formulário de senha + confirmação
  * - Enviar token+senha ao backend
- * - ✅ Exibir tela de sucesso com CTA "Fazer login"
+ * - Exibir tela de sucesso com CTA "Fazer login"
  *
  * Decisões:
  * - Uma única tela serve para "primeiro acesso" e "reset".
+ * - A tela muda textos/labels com base no tokenType retornado em validate-token.
  * - Validação de token não depende de status HTTP (backend retorna ok/reason).
- * - ✅ NÃO mostramos botão/mensagem "voltar ao login" em estados de erro.
- * - ✅ Erros de submit são exibidos via toast (sem poluir o card).
+ * - Erros de submit são exibidos via toast (sem poluir o card).
  */
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -31,6 +31,8 @@ import {
   ShieldCheck,
   KeyRound,
   LogIn,
+  RefreshCcw,
+  UserPlus,
 } from "lucide-react"
 
 import {
@@ -43,15 +45,8 @@ import {
   useValidateExhibitorTokenQuery,
 } from "@/app/modules/exhibitor-auth/exhibitor-auth.queries"
 
-/**
- * ✅ Spinner do projeto (ajuste o import conforme seu caminho real)
- */
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "@/components/ui/toast"
-
-/**
- * ✅ Toast (shadcn). Ajuste o import se seu projeto estiver em outro path.
- */
 
 type PasswordCheck = {
   minLen: boolean
@@ -72,18 +67,11 @@ function evaluatePassword(password: string): PasswordCheck {
 }
 
 function isStrongEnough(password: string) {
-  // ✅ Regras mínimas “boas” (MVP forte)
   const c = evaluatePassword(password)
   return c.minLen && c.hasUpper && c.hasLower && c.hasNumber && c.hasSymbol
 }
 
-function PasswordRule({
-  ok,
-  label,
-}: {
-  ok: boolean
-  label: string
-}) {
+function PasswordRule({ ok, label }: { ok: boolean; label: string }) {
   return (
     <div className="flex items-center gap-2 text-xs">
       {ok ? (
@@ -98,6 +86,29 @@ function PasswordRule({
   )
 }
 
+/**
+ * Ajuda a padronizar texto/ícone por modo:
+ * - ACTIVATE_ACCOUNT => primeiro acesso / criar senha
+ * - RESET_PASSWORD  => recuperação / redefinir senha
+ */
+function getModeUi(tokenType?: string) {
+  const isReset = tokenType === "RESET_PASSWORD"
+
+  return {
+    isReset,
+    title: isReset ? "Redefinir senha" : "Criar senha",
+    subtitle: isReset
+      ? "Defina uma nova senha para voltar a acessar o portal."
+      : "Crie sua senha para acessar o portal pela primeira vez.",
+    icon: isReset ? RefreshCcw : UserPlus,
+    primaryButtonLabel: isReset ? "Salvar nova senha" : "Criar senha",
+    successTitle: isReset ? "Senha redefinida com sucesso" : "Senha definida com sucesso",
+    successSubtitle: isReset
+      ? "Agora você já pode entrar no portal com sua nova senha."
+      : "Agora você já pode acessar o portal com seu e-mail e a senha recém-criada.",
+  }
+}
+
 export function ActivateAccountCard({ token }: { token: string }) {
   const router = useRouter()
 
@@ -110,16 +121,7 @@ export function ActivateAccountCard({ token }: { token: string }) {
 
   const data = validateQuery.data
 
-  /**
-   * Label do modo:
-   * - RESET_PASSWORD => "Redefinir senha"
-   * - ACTIVATE_ACCOUNT => "Criar senha"
-   */
-  const modeLabel = useMemo(() => {
-    const t = data?.tokenType
-    if (t === "RESET_PASSWORD") return "Redefinir senha"
-    return "Criar senha"
-  }, [data?.tokenType])
+  const modeUi = useMemo(() => getModeUi(data?.tokenType), [data?.tokenType])
 
   const passwordCheck = useMemo(() => evaluatePassword(password), [password])
 
@@ -135,16 +137,14 @@ export function ActivateAccountCard({ token }: { token: string }) {
       const res = await setPasswordMutation.mutateAsync({ token, password })
 
       if (res.success) {
-        // ✅ Mostra tela de sucesso (sem redirecionar automaticamente)
         setShowSuccess(true)
       } else {
         toast.error({
           title: "Não foi possível salvar",
-          subtitle: "Tente novamente. Se persistir",
+          subtitle: "Tente novamente. Se persistir, solicite um novo link.",
         })
       }
     } catch (err: any) {
-      // ✅ Erro vindo do api layer / backend (mensagem amigável)
       toast.error({
         title: "Erro ao salvar senha",
         subtitle:
@@ -169,17 +169,14 @@ export function ActivateAccountCard({ token }: { token: string }) {
           <div className="rounded-xl border bg-emerald-50/50 p-4">
             <div className="text-sm font-medium text-emerald-900 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-emerald-700" />
-              Senha definida com sucesso
+              {modeUi.successTitle}
             </div>
             <div className="mt-1 text-sm text-emerald-900/80">
-              Agora você já pode acessar o portal com seu e-mail e a senha recém-criada.
+              {modeUi.successSubtitle}
             </div>
           </div>
 
-          <Button
-            className="w-full gap-2"
-            onClick={() => router.replace("/login")}
-          >
+          <Button className="w-full gap-2" onClick={() => router.replace("/login")}>
             <LogIn className="h-4 w-4" />
             Fazer login
           </Button>
@@ -242,7 +239,7 @@ export function ActivateAccountCard({ token }: { token: string }) {
           <CardTitle className="text-lg">Não foi possível carregar</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          Tente atualizar a página. Se persistir.
+          Tente atualizar a página. Se persistir, solicite um novo link.
         </CardContent>
       </Card>
     )
@@ -269,7 +266,7 @@ export function ActivateAccountCard({ token }: { token: string }) {
     )
   }
 
-  // Estado 5: token válido (ok=true)
+  // Estado 5: token válido (ok=true) mas contrato incompleto
   if (!isTokenValid(data)) {
     return (
       <Card className="rounded-2xl">
@@ -283,6 +280,8 @@ export function ActivateAccountCard({ token }: { token: string }) {
     )
   }
 
+  const Icon = modeUi.icon
+
   const displayName =
     (data.displayName?.trim() ? data.displayName.trim() : null) ??
     data.email ??
@@ -292,9 +291,10 @@ export function ActivateAccountCard({ token }: { token: string }) {
     <Card className="rounded-2xl">
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
-          <KeyRound className="h-5 w-5 text-muted-foreground" />
-          {modeLabel}
+          <Icon className="h-5 w-5 text-muted-foreground" />
+          {modeUi.title}
         </CardTitle>
+        <div className="text-sm text-muted-foreground">{modeUi.subtitle}</div>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -315,12 +315,14 @@ export function ActivateAccountCard({ token }: { token: string }) {
 
         {/* Form senha */}
         <div className="space-y-2">
-          <div className="text-sm font-medium">Nova senha</div>
+          <div className="text-sm font-medium">
+            {modeUi.isReset ? "Nova senha" : "Criar senha"}
+          </div>
           <Input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Crie uma senha forte"
+            placeholder={modeUi.isReset ? "Digite uma nova senha forte" : "Crie uma senha forte"}
             autoComplete="new-password"
           />
 
@@ -357,7 +359,7 @@ export function ActivateAccountCard({ token }: { token: string }) {
           ) : (
             <>
               <CheckCircle2 className="h-4 w-4" />
-              Confirmar
+              {modeUi.primaryButtonLabel}
             </>
           )}
         </Button>
