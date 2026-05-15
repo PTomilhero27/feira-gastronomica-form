@@ -119,9 +119,9 @@ export function StallWizard({
   })
 
   const [infra, setInfra] = useState(() => ({
-    outlets110: initialStall?.powerNeed?.outlets110 ?? 0,
-    outlets220: initialStall?.powerNeed?.outlets220 ?? 0,
-    outletsOther: initialStall?.powerNeed?.outletsOther ?? 0,
+    outlets110: 0,
+    outlets220: (initialStall?.powerNeed?.outlets220 ?? 0) + (initialStall?.powerNeed?.outlets110 ?? 0) + (initialStall?.powerNeed?.outletsOther ?? 0),
+    outletsOther: 0,
     needsGas: initialStall?.powerNeed?.needsGas ?? false,
     gasNotes: initialStall?.powerNeed?.gasNotes ?? '',
     notes: initialStall?.powerNeed?.notes ?? '',
@@ -227,10 +227,7 @@ export function StallWizard({
   }
 
   function validateStep2(): boolean {
-    const totalOutlets =
-      Number(infra.outlets110 || 0) +
-      Number(infra.outlets220 || 0) +
-      Number(infra.outletsOther || 0)
+    const totalOutlets = Number(infra.outlets220 || 0)
 
     const validEquipmentsCount = (infra.equipments ?? []).filter(
       (e) => (e.name ?? '').trim().length > 0,
@@ -330,9 +327,9 @@ export function StallWizard({
           : (basic.stallSize || 'SIZE_3X3')
 
     const power = {
-      outlets110: Number(infra.outlets110 || 0),
+      outlets110: 0,
       outlets220: Number(infra.outlets220 || 0),
-      outletsOther: Number(infra.outletsOther || 0),
+      outletsOther: 0,
       needsGas: Boolean(infra.needsGas),
       gasNotes: infra.needsGas ? (infra.gasNotes?.trim() || '') : '',
       notes: infra.notes?.trim() || '',

@@ -66,10 +66,7 @@ export function StallCard({
         notes?: string | null
       }
 
-  const totalOutlets =
-    Number(powerNeed?.outlets110 ?? 0) +
-    Number(powerNeed?.outlets220 ?? 0) +
-    Number(powerNeed?.outletsOther ?? 0)
+  const totalOutlets = Number(powerNeed?.outlets220 ?? 0)
 
   const hasEnergy = totalOutlets > 0
   const createdAt = stall?.createdAt

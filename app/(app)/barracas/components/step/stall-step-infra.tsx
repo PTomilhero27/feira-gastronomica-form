@@ -102,8 +102,8 @@ export function StallStep3Infra({
   }, [value.equipments])
 
   const totalOutlets = React.useMemo(() => {
-    return Number(value.outlets110 || 0) + Number(value.outlets220 || 0) + Number(value.outletsOther || 0)
-  }, [value.outlets110, value.outlets220, value.outletsOther])
+    return Number(value.outlets220 || 0)
+  }, [value.outlets220])
 
   const validEquipmentsCount = React.useMemo(() => {
     return (value.equipments ?? []).filter((e) => required(e.name)).length
@@ -137,7 +137,7 @@ export function StallStep3Infra({
 
     // 1) Se marcou gás, gasNotes obrigatório
     if (value.needsGas && !required(value.gasNotes)) {
-      return 'Você marcou que precisa de gás. Preencha as observações sobre gás (ex.: 1 botijão P13).'
+      return 'Você marcou que vai utilizar gás. Preencha as observações sobre gás (ex.: 1 botijão P13).'
     }
 
     // 2) Se tem equipamentos, valida todos
@@ -185,8 +185,7 @@ export function StallStep3Infra({
 
             <span className="inline-flex items-center gap-2 font-semibold text-slate-800">
               <Zap className="h-4 w-4 text-[#010077]" />
-              Tomadas: 110={value.outlets110 || 0} • 220={value.outlets220 || 0} • outras={value.outletsOther || 0} (Total:{' '}
-              {totalOutlets})
+              Tomadas 220V: {value.outlets220 || 0}
             </span>
           </div>
         </div>
@@ -286,39 +285,15 @@ export function StallStep3Infra({
             <div className="mt-0.5 text-xs text-slate-500 font-medium">Opcional. Se não precisar de energia, escreva isso nas observações gerais.</div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div>
-              <label className="text-xs font-semibold text-slate-800">Tomadas 110V</label>
-              <input
-                value={String(value.outlets110 ?? 0)}
-                onChange={(e) => onChange({ ...value, outlets110: Math.max(0, onlyInt(e.target.value)) })}
-                inputMode="numeric"
-                placeholder="0"
-                className={inputCls('mt-1')}
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold text-slate-800">Tomadas 220V</label>
-              <input
-                value={String(value.outlets220 ?? 0)}
-                onChange={(e) => onChange({ ...value, outlets220: Math.max(0, onlyInt(e.target.value)) })}
-                inputMode="numeric"
-                placeholder="0"
-                className={inputCls('mt-1')}
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold text-slate-800">Outras</label>
-              <input
-                value={String(value.outletsOther ?? 0)}
-                onChange={(e) => onChange({ ...value, outletsOther: Math.max(0, onlyInt(e.target.value)) })}
-                inputMode="numeric"
-                placeholder="0"
-                className={inputCls('mt-1')}
-              />
-            </div>
+          <div className="max-w-xs">
+            <label className="text-xs font-semibold text-slate-800">Quantidade de tomadas 220V</label>
+            <input
+              value={String(value.outlets220 ?? 0)}
+              onChange={(e) => onChange({ ...value, outlets220: Math.max(0, onlyInt(e.target.value)) })}
+              inputMode="numeric"
+              placeholder="0"
+              className={inputCls('mt-1')}
+            />
           </div>
         </div>
 
@@ -328,7 +303,7 @@ export function StallStep3Infra({
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
                 <Flame className="h-4 w-4 text-[#010077]" />
-                Precisa de gás (GLP)?
+                Vai utilizar gás (GLP)?
               </div>
               <div className="mt-0.5 text-xs text-slate-500 font-medium">Opcional. Marque caso use botijão/GLP.</div>
             </div>
@@ -338,7 +313,7 @@ export function StallStep3Infra({
               checked={Boolean(value.needsGas)}
               onChange={(e) => onChange({ ...value, needsGas: e.target.checked })}
               className="mt-1 h-5 w-5 accent-[#010077]"
-              aria-label="Precisa de gás (GLP)"
+              aria-label="Vai utilizar gás (GLP)"
             />
           </div>
 
